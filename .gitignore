@@ -1,0 +1,27 @@
+# Xcode
+## User settings
+xcuserdata/
+*.xcuserdatad
+
+## Xcode temporary files
+DerivedData/
+build/
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+## Swift Package Manager
+.build/
+Packages/
+
+## macOS
+.DS_Store
+*.swp
+*~
+
+## VS Code
+.vscode/
+
+## General
+*.log
