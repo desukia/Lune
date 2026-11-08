@@ -33,30 +33,26 @@ public struct MainView: View {
         
         NavigationStack {
             ZStack(alignment: .bottom) {
-                // Background (Solid base + Android Lune GlobalBlur of current song)
-                if settings.amoledPitchBlack {
-                    Color.black
-                        .ignoresSafeArea()
-                } else {
-                    colors.background
-                        .ignoresSafeArea()
-                    
-                    if let data = player.currentSong?.artworkData, let img = UIImage(data: data) {
-                        GeometryReader { bgGeo in
-                            Image(uiImage: img)
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
-                                .frame(width: bgGeo.size.width, height: bgGeo.size.height)
-                                .clipped()
-                                .blur(radius: 50)
-                                .opacity(colorScheme == .dark ? 0.40 : 0.25)
-                                .overlay(
-                                    Color.black.opacity(colorScheme == .dark ? 0.50 : 0.20)
-                                )
-                        }
-                        .ignoresSafeArea()
-                        .animation(.easeInOut(duration: 0.35), value: player.currentSong?.id)
+                // Background (Android Deep Black + Global Blur across entire interface)
+                Color.black
+                    .ignoresSafeArea()
+                
+                if let data = player.currentSong?.artworkData ?? library.allSongs.first?.artworkData,
+                   let img = UIImage(data: data) {
+                    GeometryReader { bgGeo in
+                        Image(uiImage: img)
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: bgGeo.size.width, height: bgGeo.size.height)
+                            .clipped()
+                            .blur(radius: 45)
+                            .opacity(0.38)
+                            .overlay(
+                                Color.black.opacity(0.48)
+                            )
                     }
+                    .ignoresSafeArea()
+                    .animation(.easeInOut(duration: 0.35), value: player.currentSong?.id)
                 }
                 
                 // Main Content Column

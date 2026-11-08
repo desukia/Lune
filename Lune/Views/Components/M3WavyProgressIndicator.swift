@@ -24,9 +24,9 @@ public struct M3WavyProgressIndicator: View {
     @State private var isDragging: Bool = false
     @State private var dragProgress: Double = 0.0
     
-    private let waveAmplitude: CGFloat = 3.5
-    private let waveLength: CGFloat = 28.0
-    private let strokeWidth: CGFloat = 4.0
+    private let waveAmplitude: CGFloat = 6.5
+    private let waveLength: CGFloat = 38.0
+    private let strokeWidth: CGFloat = 5.0
     
     public init(
         progress: Binding<Double>,
@@ -108,7 +108,7 @@ public struct M3WavyProgressIndicator: View {
                     }
             )
         }
-        .frame(height: 24)
+        .frame(height: 32)
         .onAppear {
             if isPlaying && isWavy {
                 startWaveAnimation()
@@ -155,7 +155,7 @@ private struct M3WavySineShape: Shape {
         while x <= endX {
             let relativeX = x / wavelength
             // Smoothly taper amplitude to 0 over the last 14pt so wave enters thumb center seamlessly
-            let endTaper = max(0.0, min(1.0, (endX - x) / 14.0))
+            let endTaper = max(0.0, min(1.0, (endX - x) / 18.0))
             let currentAmp = amplitude * endTaper
             let y = centerY + sin(relativeX * 2 * .pi - phase) * currentAmp
             path.addLine(to: CGPoint(x: x, y: y))

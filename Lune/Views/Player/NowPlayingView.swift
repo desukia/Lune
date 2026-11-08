@@ -224,42 +224,33 @@ public struct NowPlayingView: View {
         colors: LuneColorScheme
     ) -> some View {
         let safeTop = max(geo.safeAreaInsets.top, 44)
-        let safeBottom = max(geo.safeAreaInsets.bottom, 20)
-        let coverSize = isCompact ? 240 : min(screenWidth - 48, screenHeight * 0.42)
+        // Elevate controls cleanly (subir os botões) with comfortable bottom clearance
+        let safeBottom = max(geo.safeAreaInsets.bottom + 26, 54)
+        let coverSize = isCompact ? 210 : min(screenWidth - 56, screenHeight * 0.38)
         
         ZStack {
-            // 1. Blurred Album Artwork Background (Android Lune FullPlayer 1:1 Parity)
-            if settings.amoledPitchBlack {
-                Color.black
-            } else {
-                colors.background
-                
-                if let data = player.currentSong?.artworkData, let img = UIImage(data: data) {
-                    Image(uiImage: img)
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                        .frame(width: screenWidth, height: screenHeight)
-                        .clipped()
-                        .blur(radius: 50)
-                        .overlay(
-                            Color.black.opacity(colorScheme == .dark ? 0.52 : 0.22)
-                        )
-                } else {
-                    LinearGradient(
-                        colors: [
-                            colors.primary.opacity(0.25),
-                            colors.background
-                        ],
-                        startPoint: .top,
-                        endPoint: .bottom
+            // 1. Android Deep Black base
+            Color.black
+            
+            // 2. Global Artwork Blur Background (1:1 Android FullPlayer Parity)
+            if let data = player.currentSong?.artworkData ?? library.allSongs.first?.artworkData,
+               let img = UIImage(data: data) {
+                Image(uiImage: img)
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: screenWidth, height: screenHeight)
+                    .clipped()
+                    .blur(radius: 45)
+                    .opacity(0.38)
+                    .overlay(
+                        Color.black.opacity(0.48)
                     )
-                }
             }
             
-            // 2. Main Player Layout (Android Lune FullPlayer: 2 sections separated by SpaceBetween)
+            // 3. Main Player Layout (Elevated controls, perfectly balanced)
             VStack(spacing: 0) {
-                // MARK: 1. Top Cover Section (Header Bar + 16pt Gap + Square Cover Art)
-                VStack(spacing: 16) {
+                // Top Cover Section
+                VStack(spacing: 12) {
                     m3TopHeaderBar(colors: colors)
                     
                     if activeMode == .lyrics {
@@ -273,24 +264,24 @@ public struct NowPlayingView: View {
                 .padding(.horizontal, 24)
                 .frame(width: screenWidth)
                 
-                Spacer(minLength: 8)
+                Spacer(minLength: 16)
                 
-                // MARK: 2. Bottom Controls Section (Track Info, Progress, Controls, Options)
+                // Bottom Controls Section (Raised up)
                 VStack(spacing: 0) {
-                    // Track Info Row (Song Title, Artist Pill, Hi-Fi, Split Lyrics/Fav)
+                    // Track Info Row
                     m3TrackInfoRow(colors: colors)
                     
-                    Spacer().frame(height: 8)
+                    Spacer().frame(height: 10)
                     
                     // Wavy Progress Bar & Timestamps
                     m3ProgressSection(colors: colors)
                     
-                    Spacer().frame(height: 12)
+                    Spacer().frame(height: 16)
                     
                     // Playback Controls Row (Skip Prev, Play/Pause, Skip Next)
                     m3ControlsRow(colors: colors)
                     
-                    Spacer().frame(height: 14)
+                    Spacer().frame(height: 18)
                     
                     // Bottom Option Pills Row (Shuffle, Repeat, Queue)
                     m3OptionsRow(colors: colors)
@@ -303,6 +294,15 @@ public struct NowPlayingView: View {
         }
         .frame(width: screenWidth, height: screenHeight)
         .clipped()
+        .gesture(
+            DragGesture(minimumDistance: 20)
+                .onEnded { val in
+                    if val.translation.height > 50 && abs(val.translation.height) > abs(val.translation.width) * 1.2 {
+                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                        dismiss()
+                    }
+                }
+        )
     }
     
     // MARK: - M3 Subviews (1:1 Android Lune Parity)

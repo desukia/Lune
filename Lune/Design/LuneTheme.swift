@@ -90,16 +90,16 @@ public struct LuneColorScheme {
     }
     
     // Dynamic Material 3 Expressive Tokens
-    public var onPrimary: Color { .white }
+    public var onPrimary: Color { Color(hex: 0x381E72) }
     public var primaryContainer: Color { primary.opacity(0.24) }
     public var onPrimaryContainer: Color { onSurface }
     
-    public var onSecondary: Color { .white }
-    public var secondaryContainer: Color { secondary.opacity(0.20) }
+    public var onSecondary: Color { Color(hex: 0x332D41) }
+    public var secondaryContainer: Color { Color(hex: 0x2A2634) }
     public var onSecondaryContainer: Color { onSurface }
     
-    public var onTertiary: Color { .white }
-    public var tertiaryContainer: Color { tertiary.opacity(0.20) }
+    public var onTertiary: Color { Color(hex: 0x492532) }
+    public var tertiaryContainer: Color { Color(hex: 0x312028) }
     public var onTertiaryContainer: Color { onSurface }
     
     public var onSurfaceVariant: Color { onSurface.opacity(0.70) }
@@ -126,13 +126,13 @@ public struct LuneTheme {
     )
     
     public static let violetDark = LuneColorScheme(
-        primary: Color(hex: 0xB59DFF),
-        secondary: Color(hex: 0x8C74D9),
-        tertiary: Color(hex: 0x554492),
-        surface: Color(hex: 0x1A1433),
-        background: Color(hex: 0x110D24),
-        surfaceVariant: Color(hex: 0x2A204D),
-        onSurface: Color(hex: 0xF6F2FF)
+        primary: Color(hex: 0xD0BCFF),
+        secondary: Color(hex: 0xCCC2DC),
+        tertiary: Color(hex: 0xEFB8C8),
+        surface: Color(hex: 0x141218),
+        background: Color(hex: 0x000000),
+        surfaceVariant: Color(hex: 0x1E1B24),
+        onSurface: Color(hex: 0xE6E0E9)
     )
     
     // 1. Sunset Peach
