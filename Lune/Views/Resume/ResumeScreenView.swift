@@ -659,7 +659,7 @@ public struct ResumeScreenView: View {
         guard let first = library.artists.first else {
             return ("Unknown Artist", 0, nil)
         }
-        return (first.name, first.songs.count, first.artworkData)
+        return (first.name, first.songCount, first.artworkData)
     }
     
     private var topSongItem: (title: String, plays: Int, artworkData: Data?) {
