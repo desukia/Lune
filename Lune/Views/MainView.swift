@@ -169,14 +169,19 @@ public struct MainView: View {
             
             Spacer()
             
-            // Trailing Action Buttons: Theme Toggle & Settings (1:1 with Android Lune)
-            HStack(spacing: 10) {
-                // 1. Theme Toggle (Sun / Moon)
+            // Trailing Action Buttons: Chevron, Theme Toggle & Settings (1:1 with Android Lune)
+            HStack(spacing: 8) {
+                // 1. Collapse / Section Header toggle
+                topBarButton(icon: "chevron.up", colors: colors) {
+                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                }
+                
+                // 2. Theme Toggle (Sun / Moon)
                 topBarButton(icon: themeIcon, colors: colors) {
                     cycleThemeMode()
                 }
                 
-                // 2. Settings Gear
+                // 3. Settings Gear
                 topBarButton(icon: "gearshape.fill", colors: colors) {
                     showSettings = true
                 }

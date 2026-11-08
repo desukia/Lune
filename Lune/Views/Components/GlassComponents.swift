@@ -157,3 +157,100 @@ public struct HiFiBadge: View {
             )
     }
 }
+
+// MARK: - M3 Expressive Flower Shape (Material 3 9-sided Cookie Shape)
+public struct M3FlowerShape: Shape {
+    public var petals: Int = 9
+    public var depth: CGFloat = 0.12
+    
+    public init(petals: Int = 9, depth: CGFloat = 0.12) {
+        self.petals = petals
+        self.depth = depth
+    }
+    
+    public func path(in rect: CGRect) -> Path {
+        var path = Path()
+        let center = CGPoint(x: rect.midX, y: rect.midY)
+        let maxRadius = min(rect.width, rect.height) / 2.0
+        let baseRadius = maxRadius * (1.0 - depth)
+        let amp = maxRadius * depth
+        let stepCount = petals * 16
+        
+        for i in 0..<stepCount {
+            let theta = (CGFloat(i) / CGFloat(stepCount)) * 2 * .pi - (.pi / 2)
+            let r = baseRadius + amp * cos(CGFloat(petals) * theta)
+            let x = center.x + r * cos(theta)
+            let y = center.y + r * sin(theta)
+            if i == 0 {
+                path.move(to: CGPoint(x: x, y: y))
+            } else {
+                path.addLine(to: CGPoint(x: x, y: y))
+            }
+        }
+        path.closeSubpath()
+        return path
+    }
+}
+
+// MARK: - Scallop Play/Pause Button with Circular Progress Ring (1:1 Android Lune Parity)
+public struct ScallopPlayPauseButtonWithProgress: View {
+    public let isPlaying: Bool
+    public let progress: Float
+    public let primaryColor: Color
+    public let size: CGFloat
+    public let onClick: () -> Void
+    
+    public init(
+        isPlaying: Bool,
+        progress: Float,
+        primaryColor: Color = Color(hex: 0xD0BCFF),
+        size: CGFloat = 48,
+        onClick: @escaping () -> Void
+    ) {
+        self.isPlaying = isPlaying
+        self.progress = progress
+        self.primaryColor = primaryColor
+        self.size = size
+        self.onClick = onClick
+    }
+    
+    public var body: some View {
+        Button {
+            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+            onClick()
+        } label: {
+            ZStack {
+                // Background track ring
+                Circle()
+                    .stroke(Color.white.opacity(0.24), lineWidth: 3.5)
+                
+                // Active progress arc
+                Circle()
+                    .trim(from: 0, to: CGFloat(max(0, min(1, progress))))
+                    .stroke(primaryColor, style: StrokeStyle(lineWidth: 3.5, lineCap: .round))
+                    .rotationEffect(.degrees(-90))
+                    .animation(.linear(duration: 0.25), value: progress)
+                
+                // Transparent center with icons (no solid background)
+                if isPlaying {
+                    HStack(spacing: 4) {
+                        Capsule()
+                            .fill(primaryColor)
+                            .frame(width: 4, height: 16)
+                        Capsule()
+                            .fill(primaryColor)
+                            .frame(width: 4, height: 16)
+                    }
+                } else {
+                    Image(systemName: "play.fill")
+                        .font(.system(size: 20, weight: .bold))
+                        .foregroundColor(primaryColor)
+                        .offset(x: 1.5)
+                }
+            }
+            .frame(width: size, height: size)
+        }
+        .buttonStyle(.plain)
+    }
+}
+

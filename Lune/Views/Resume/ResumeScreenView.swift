@@ -2,12 +2,12 @@
 //  ResumeScreenView.swift
 //  Lune
 //
-//  Complete parity with Android ResumeScreen.kt:
-//  - Hero Section (Current / Last played with live playback stats)
-//  - AI Recommendations carousel
-//  - Top Playlists grid
-//  - Top Artists & Top Genres
-//  - Recently Added tracks
+//  1:1 Exact Parity with Android Lune ResumeScreen.kt & HeroSection.kt:
+//  - Material 3 Expressive Tops Summary Hero Card (190dp height, 24dp rounded corners, 9-sided flower artwork)
+//  - Continue Listening Card (56dp cover, title, artist, 48dp ScallopPlayPauseButtonWithProgress)
+//  - M3 MultiBrowse Carousel Recommendations (200dp height, 24dp corner, dark bottom gradient, play button)
+//  - Top Artists Carousel (100dp circular photos, no extra text, 1:1 Android ArtistCircleCard)
+//  - Top Genres & Playlists sections
 //
 
 import SwiftUI
@@ -77,21 +77,21 @@ public struct ResumeScreenView: View {
     
     public var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
-            VStack(spacing: 24) {
-                // 1. Hero Section
-                heroCard
+            VStack(spacing: 20) {
+                // 1. Hero Section (Tops Summary Card + Continue Listening Card)
+                heroSection
                 
-                // 2. AI Recommendations
+                // 2. AI Recommendations Carousel (200dp height, 24dp corner)
                 if !recommendations.isEmpty {
                     recommendationsSection
                 }
                 
-                // 3. Top Playlists Grid
+                // 3. Top Playlists Horizontal Carousel
                 if !libraryPlaylists.isEmpty {
-                    playlistsGridSection
+                    playlistsSection
                 }
                 
-                // 4. Top Artists Carousel
+                // 4. Top Artists Carousel (1:1 Android ArtistCircleCard)
                 if !library.artists.isEmpty {
                     topArtistsSection
                 }
@@ -106,7 +106,7 @@ public struct ResumeScreenView: View {
                     recentlyAddedSection
                 }
             }
-            .padding(.top, 16)
+            .padding(.top, 10)
             .padding(.bottom, 220) // generous spacing for floating MiniPlayer & TabBar
         }
         .sheet(item: $selectedPlaylist) { pl in
@@ -157,267 +157,276 @@ public struct ResumeScreenView: View {
         }
     }
     
-    // MARK: - Hero Card
+    // MARK: - Hero Section (1:1 Android Lune HeroSection.kt)
     
-    private var heroCard: some View {
+    private var heroSection: some View {
         let colors = settings.resolveColors(for: colorScheme)
         let activeSong = player.currentSong ?? library.allSongs.first
         
-        return VStack(alignment: .leading, spacing: 14) {
-            HStack(spacing: 14) {
-                // Album artwork + Song title & artist (tappable to open Now Playing)
-                Button {
-                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                    onTapHero()
-                } label: {
-                    HStack(spacing: 14) {
-                        if let song = activeSong {
-                            if let data = song.artworkData, let img = UIImage(data: data) {
-                                Image(uiImage: img)
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fill)
-                                    .frame(width: 80, height: 80)
-                                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-                            } else {
-                                ArtworkPlaceholderView(size: 80, cornerRadius: 16)
-                            }
-                        }
-                        
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(player.isPlaying ? "NOW PLAYING" : "LAST PLAYED")
-                                .font(.custom("Quicksand-Bold", size: 10))
-                                .foregroundColor(colors.primary)
-                                .tracking(1.0)
-                            
-                            Text(activeSong?.title ?? "Welcome to Lune")
-                                .font(.custom("Quicksand-Bold", size: 18))
-                                .foregroundColor(.primary)
-                                .lineLimit(1)
-                            
-                            Text(activeSong?.artist ?? "Scan or import audio to begin")
-                                .font(.custom("Quicksand-Regular", size: 14))
-                                .foregroundColor(.secondary)
-                                .lineLimit(1)
-                        }
-                    }
-                    .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                
-                Spacer()
-                
-                // Play / Pause Action
-                if let song = activeSong {
-                    Button {
-                        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-                        if player.currentSong?.id == song.id {
-                            player.togglePlayPause()
-                        } else {
-                            player.playSong(song)
-                        }
-                    } label: {
-                        if settings.uiStyle == .materialYou {
-                            Circle()
-                                .fill(colors.primary)
-                                .frame(width: 52, height: 52)
-                                .overlay(
-                                    Image(systemName: (player.currentSong?.id == song.id && player.isPlaying) ? "pause.fill" : "play.fill")
-                                        .font(.system(size: 20, weight: .bold))
-                                        .foregroundColor(colors.onPrimary)
-                                        .offset(x: (player.currentSong?.id == song.id && player.isPlaying) ? 0 : 1.5)
-                                )
-                                .shadow(color: colors.primary.opacity(0.35), radius: 8, x: 0, y: 3)
-                        } else {
-                            Image(systemName: (player.currentSong?.id == song.id && player.isPlaying) ? "pause.fill" : "play.fill")
-                                .font(.system(size: 20, weight: .bold))
-                                .foregroundColor(.white)
-                                .frame(width: 52, height: 52)
-                                .liquidGlass(.tinted(colors.primary, opacity: 0.9), in: Circle(), interactive: true)
-                        }
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-            
-            // Quick Stat Badges
-            HStack(spacing: 8) {
-                Button {
-                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                    onNavigateToAllSongs()
-                } label: {
-                    statPill(title: "\(library.allSongs.count) Songs", icon: "music.note", colors: colors)
-                }
-                .buttonStyle(.plain)
-                
-                if let topArt = library.artists.first?.name {
-                    Button {
-                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                        onNavigateToArtist(topArt)
-                    } label: {
-                        statPill(title: topArt, icon: "person.fill", colors: colors)
-                    }
-                    .buttonStyle(.plain)
-                }
-                
-                if let topGen = library.genres.first {
-                    Button {
-                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                        onNavigateToGenre(topGen)
-                    } label: {
-                        statPill(title: topGen, icon: "guitars.fill", colors: colors)
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-        }
-        .padding(18)
-        .background {
-            if settings.uiStyle == .materialYou {
+        return VStack(spacing: 12) {
+            // MARK: 1. Tops Summary Hero Card (190dp height, 24dp corner, 9-sided flower artwork)
+            ZStack {
                 RoundedRectangle(cornerRadius: 24, style: .continuous)
                     .fill(
                         LinearGradient(
                             colors: [
                                 colors.secondaryContainer,
-                                colors.tertiaryContainer.opacity(0.85)
+                                colors.tertiaryContainer.opacity(0.75)
                             ],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         )
                     )
-                    .shadow(color: Color.black.opacity(colorScheme == .dark ? 0.35 : 0.08), radius: 10, x: 0, y: 4)
-            } else {
-                RoundedRectangle(cornerRadius: 24, style: .continuous)
-                    .fill(.clear)
-                    .liquidGlass(
-                        .regular,
-                        in: RoundedRectangle(cornerRadius: 24, style: .continuous),
-                        interactive: false,
-                        hasBorder: true,
-                        shadowRadius: 10
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 24, style: .continuous)
+                            .stroke(colors.outlineVariant.opacity(0.20), lineWidth: 1)
                     )
+                
+                HStack(spacing: 16) {
+                    // Left side: 140x140 flower cookie shape (MaterialShapes.Flower.toShape())
+                    ZStack {
+                        let coverData = topArtistItem.artworkData ?? topSongItem.artworkData ?? activeSong?.artworkData
+                        if let data = coverData, let img = UIImage(data: data) {
+                            Image(uiImage: img)
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                                .frame(width: 140, height: 140)
+                                .clipShape(M3FlowerShape())
+                        } else {
+                            M3FlowerShape()
+                                .fill(colors.surface.opacity(0.50))
+                                .frame(width: 140, height: 140)
+                                .overlay(
+                                    Image(systemName: "music.note")
+                                        .font(.system(size: 48, weight: .bold))
+                                        .foregroundColor(colors.onSecondaryContainer)
+                                )
+                        }
+                    }
+                    .frame(width: 140, height: 140)
+                    .shadow(color: Color.black.opacity(0.18), radius: 8, x: 0, y: 3)
+                    
+                    // Right side: Top Stats (Artist, Song, Genre)
+                    VStack(alignment: .leading, spacing: 0) {
+                        // 1. Top Artist
+                        VStack(alignment: .leading, spacing: 2) {
+                            HStack(spacing: 4) {
+                                Image(systemName: "sparkles")
+                                    .font(.system(size: 10, weight: .bold))
+                                    .foregroundColor(colors.onSecondaryContainer.opacity(0.85))
+                                
+                                Text("TOP ARTIST")
+                                    .font(.custom("Quicksand-Bold", size: 9.5))
+                                    .tracking(0.6)
+                                    .foregroundColor(colors.onSecondaryContainer.opacity(0.85))
+                            }
+                            
+                            Text(topArtistItem.name)
+                                .font(.custom("Quicksand-Bold", size: 16))
+                                .foregroundColor(colors.onSecondaryContainer)
+                                .lineLimit(1)
+                            
+                            Text("\(max(1, topArtistItem.count)) songs")
+                                .font(.custom("Quicksand-Regular", size: 11))
+                                .foregroundColor(colors.onSecondaryContainer.opacity(0.70))
+                        }
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            onNavigateToArtist(topArtistItem.name)
+                        }
+                        
+                        Spacer(minLength: 6)
+                        
+                        // 2. Top Song
+                        VStack(alignment: .leading, spacing: 2) {
+                            HStack(spacing: 4) {
+                                Image(systemName: "play.circle.fill")
+                                    .font(.system(size: 10, weight: .bold))
+                                    .foregroundColor(colors.onSecondaryContainer.opacity(0.85))
+                                
+                                Text("TOP SONG • \(topSongItem.plays) plays")
+                                    .font(.custom("Quicksand-Bold", size: 9.5))
+                                    .tracking(0.6)
+                                    .foregroundColor(colors.onSecondaryContainer.opacity(0.85))
+                            }
+                            
+                            Text(topSongItem.title)
+                                .font(.custom("Quicksand-Bold", size: 14))
+                                .foregroundColor(colors.onSecondaryContainer)
+                                .lineLimit(1)
+                        }
+                        
+                        Spacer(minLength: 6)
+                        
+                        // 3. Top Genre
+                        VStack(alignment: .leading, spacing: 2) {
+                            HStack(spacing: 4) {
+                                Image(systemName: "square.grid.2x2.fill")
+                                    .font(.system(size: 10, weight: .bold))
+                                    .foregroundColor(colors.onSecondaryContainer.opacity(0.85))
+                                
+                                Text("TOP GENRE")
+                                    .font(.custom("Quicksand-Bold", size: 9.5))
+                                    .tracking(0.6)
+                                    .foregroundColor(colors.onSecondaryContainer.opacity(0.85))
+                            }
+                            
+                            Text(topGenreItem)
+                                .font(.custom("Quicksand-Bold", size: 14))
+                                .foregroundColor(colors.onSecondaryContainer)
+                                .lineLimit(1)
+                        }
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            onNavigateToGenre(topGenreItem)
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .padding(16)
+            }
+            .frame(height: 190)
+            .shadow(color: Color.black.opacity(colorScheme == .dark ? 0.35 : 0.08), radius: 10, x: 0, y: 4)
+            .padding(.horizontal, 16)
+            
+            // MARK: 2. Continue Listening Card (56dp cover, title, artist, 48dp ScallopPlayPauseButtonWithProgress)
+            if let song = activeSong {
+                Button {
+                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                    onTapHero()
+                } label: {
+                    HStack(spacing: 12) {
+                        // Song Cover 56x56 (cornerRadius: 14)
+                        if let data = song.artworkData, let img = UIImage(data: data) {
+                            Image(uiImage: img)
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                                .frame(width: 56, height: 56)
+                                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                        } else {
+                            ArtworkPlaceholderView(size: 56, cornerRadius: 14)
+                        }
+                        
+                        // Song Title & Artist
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text(song.title)
+                                .font(.custom("Quicksand-Bold", size: 15))
+                                .foregroundColor(colors.onSurface)
+                                .lineLimit(1)
+                            
+                            Text(song.artist)
+                                .font(.custom("Quicksand-Regular", size: 13))
+                                .foregroundColor(colors.onSurfaceVariant)
+                                .lineLimit(1)
+                        }
+                        
+                        Spacer(minLength: 4)
+                        
+                        // Scallop Play/Pause Button with circular progress ring
+                        ScallopPlayPauseButtonWithProgress(
+                            isPlaying: player.isPlaying && player.currentSong?.id == song.id,
+                            progress: player.playbackProgress,
+                            primaryColor: colors.primary,
+                            size: 48
+                        ) {
+                            if player.currentSong?.id == song.id {
+                                player.togglePlayPause()
+                            } else {
+                                player.playSong(song)
+                            }
+                        }
+                    }
+                    .padding(12)
+                    .background(
+                        RoundedRectangle(cornerRadius: 20, style: .continuous)
+                            .fill(colors.surfaceVariant.opacity(0.60))
+                    )
+                }
+                .buttonStyle(M3BounceButtonStyle(scale: 0.98))
+                .padding(.horizontal, 16)
             }
         }
-        .padding(.horizontal, 16)
     }
     
-    private func statPill(title: String, icon: String, colors: LuneColorScheme) -> some View {
-        HStack(spacing: 4) {
-            Image(systemName: icon)
-                .font(.system(size: 10))
-            Text(title)
-                .font(.custom("Quicksand-Bold", size: 11))
-                .lineLimit(1)
-        }
-        .foregroundColor(settings.uiStyle == .materialYou ? colors.onSecondaryContainer : .secondary)
-        .padding(.horizontal, 10)
-        .padding(.vertical, 5)
-        .background(
-            Capsule()
-                .fill(settings.uiStyle == .materialYou ? colors.surface.opacity(0.50) : Color.primary.opacity(0.06))
-        )
-    }
-    
-    // MARK: - AI Recommendations
+    // MARK: - AI Recommendations Carousel (1:1 Android Carousel 200dp height, 24dp corner)
     
     private var recommendationsSection: some View {
         let colors = settings.resolveColors(for: colorScheme)
-        let isM3 = settings.uiStyle == .materialYou
         
-        return VStack(alignment: .leading, spacing: 12) {
-            sectionHeader(title: "Recommendations", subtitle: "Curated for your habits")
+        return VStack(alignment: .leading, spacing: 10) {
+            Text("Recommendations")
+                .font(.custom("Quicksand-Bold", size: 22))
+                .foregroundColor(colors.onSurface)
+                .padding(.horizontal, 16)
             
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 14) {
-                    ForEach(recommendations.prefix(10)) { song in
+                    ForEach(recommendations.prefix(12)) { song in
                         Button {
                             player.playQueue(recommendations, startingAt: recommendations.firstIndex(of: song) ?? 0)
                         } label: {
-                            if isM3 {
-                                // Android Lune 1:1 Material 3 MultiBrowse Carousel Card (260x200, 24dp corner)
-                                ZStack(alignment: .bottomLeading) {
-                                    if let data = song.artworkData, let img = UIImage(data: data) {
-                                        Image(uiImage: img)
-                                            .resizable()
-                                            .aspectRatio(contentMode: .fill)
-                                            .frame(width: 260, height: 200)
-                                            .clipped()
-                                    } else {
-                                        ArtworkPlaceholderView(size: 260, cornerRadius: 0)
-                                            .frame(width: 260, height: 200)
-                                    }
-                                    
-                                    // Gradient overlay
-                                    LinearGradient(
-                                        colors: [
-                                            Color.clear,
-                                            Color.black.opacity(0.25),
-                                            Color.black.opacity(0.78),
-                                            Color.black.opacity(0.94)
-                                        ],
-                                        startPoint: .center,
-                                        endPoint: .bottom
-                                    )
-                                    .frame(width: 260, height: 200)
-                                    
-                                    // Title & Artist on Bottom Left, Play Button on Bottom Right
-                                    HStack(alignment: .bottom) {
-                                        VStack(alignment: .leading, spacing: 2) {
-                                            Text(song.title)
-                                                .font(.custom("Quicksand-Bold", size: 15))
-                                                .foregroundColor(.white)
-                                                .lineLimit(1)
-                                            Text(song.artist)
-                                                .font(.custom("Quicksand-Regular", size: 13))
-                                                .foregroundColor(Color.white.opacity(0.82))
-                                                .lineLimit(1)
-                                        }
-                                        .frame(maxWidth: 170, alignment: .leading)
-                                        
-                                        Spacer()
-                                        
-                                        Circle()
-                                            .fill(colors.primary)
-                                            .frame(width: 44, height: 44)
-                                            .overlay(
-                                                Image(systemName: "play.fill")
-                                                    .font(.system(size: 18, weight: .bold))
-                                                    .foregroundColor(colors.onPrimary)
-                                                    .offset(x: 1.5)
-                                            )
-                                            .shadow(color: Color.black.opacity(0.3), radius: 6, x: 0, y: 3)
-                                    }
-                                    .padding(16)
+                            ZStack(alignment: .bottomLeading) {
+                                // Full cover artwork filling the 280x200 card
+                                if let data = song.artworkData, let img = UIImage(data: data) {
+                                    Image(uiImage: img)
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fill)
+                                        .frame(width: 280, height: 200)
+                                        .clipped()
+                                } else {
+                                    ArtworkPlaceholderView(size: 280, cornerRadius: 0)
+                                        .frame(width: 280, height: 200)
                                 }
-                                .frame(width: 260, height: 200)
-                                .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
-                                .shadow(color: Color.black.opacity(colorScheme == .dark ? 0.35 : 0.12), radius: 8, x: 0, y: 4)
-                            } else {
-                                VStack(alignment: .leading, spacing: 8) {
-                                    if let data = song.artworkData, let img = UIImage(data: data) {
-                                        Image(uiImage: img)
-                                            .resizable()
-                                            .aspectRatio(contentMode: .fill)
-                                            .frame(width: 130, height: 130)
-                                            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-                                    } else {
-                                        ArtworkPlaceholderView(size: 130, cornerRadius: 18)
-                                    }
-                                    
+                                
+                                // Dark vertical gradient overlay on bottom
+                                LinearGradient(
+                                    colors: [
+                                        Color.clear,
+                                        Color.black.opacity(0.25),
+                                        Color.black.opacity(0.78),
+                                        Color.black.opacity(0.94)
+                                    ],
+                                    startPoint: .center,
+                                    endPoint: .bottom
+                                )
+                                .frame(width: 280, height: 200)
+                                
+                                // Bottom info row: Title & Artist on left, Play button on right
+                                HStack(alignment: .bottom) {
                                     VStack(alignment: .leading, spacing: 2) {
                                         Text(song.title)
-                                            .font(.custom("Quicksand-Bold", size: 14))
-                                            .foregroundColor(.primary)
+                                            .font(.custom("Quicksand-Bold", size: 16))
+                                            .foregroundColor(.white)
                                             .lineLimit(1)
+                                        
                                         Text(song.artist)
-                                            .font(.custom("Quicksand-Regular", size: 12))
-                                            .foregroundColor(.secondary)
+                                            .font(.custom("Quicksand-Regular", size: 13))
+                                            .foregroundColor(Color.white.opacity(0.82))
                                             .lineLimit(1)
                                     }
-                                    .frame(width: 130, alignment: .leading)
+                                    .frame(maxWidth: 180, alignment: .leading)
+                                    
+                                    Spacer()
+                                    
+                                    // Circular Play Button
+                                    Circle()
+                                        .fill(colors.primary)
+                                        .frame(width: 44, height: 44)
+                                        .overlay(
+                                            Image(systemName: "play.fill")
+                                                .font(.system(size: 18, weight: .bold))
+                                                .foregroundColor(colors.onPrimary)
+                                                .offset(x: 1.5)
+                                        )
+                                        .shadow(color: Color.black.opacity(0.35), radius: 6, x: 0, y: 3)
                                 }
+                                .padding(16)
                             }
+                            .frame(width: 280, height: 200)
+                            .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+                            .shadow(color: Color.black.opacity(colorScheme == .dark ? 0.35 : 0.12), radius: 8, x: 0, y: 4)
                         }
-                        .buttonStyle(.plain)
+                        .buttonStyle(M3BounceButtonStyle(scale: 0.97))
                     }
                 }
                 .padding(.horizontal, 16)
@@ -425,92 +434,59 @@ public struct ResumeScreenView: View {
         }
     }
     
-    // MARK: - Top Playlists Grid
+    // MARK: - Top Playlists Section (1:1 Android Carousel)
     
-    private var playlistsGridSection: some View {
+    private var playlistsSection: some View {
         let colors = settings.resolveColors(for: colorScheme)
-        let isM3 = settings.uiStyle == .materialYou
         
-        return VStack(alignment: .leading, spacing: 12) {
-            sectionHeader(title: "Playlists", subtitle: "Your collections")
+        return VStack(alignment: .leading, spacing: 10) {
+            Text("Playlists")
+                .font(.custom("Quicksand-Bold", size: 22))
+                .foregroundColor(colors.onSurface)
+                .padding(.horizontal, 16)
             
-            if isM3 {
-                // Android Lune 1:1 Horizontal Carousel (150x190, 20dp corner)
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 14) {
-                        ForEach(libraryPlaylists) { pl in
-                            Button {
-                                UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                                selectedPlaylist = pl
-                            } label: {
-                                ZStack(alignment: .bottomLeading) {
-                                    colors.surfaceContainerHigh
-                                    
-                                    // Playlist cover / art
-                                    Image(systemName: "music.note.list")
-                                        .font(.system(size: 40))
-                                        .foregroundColor(colors.primary.opacity(0.35))
-                                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                                    
-                                    LinearGradient(
-                                        colors: [
-                                            Color.clear,
-                                            Color.black.opacity(0.20),
-                                            Color.black.opacity(0.75),
-                                            Color.black.opacity(0.92)
-                                        ],
-                                        startPoint: .top,
-                                        endPoint: .bottom
-                                    )
-                                    
-                                    VStack(alignment: .leading, spacing: 2) {
-                                        Text(pl.name)
-                                            .font(.custom("Quicksand-Bold", size: 14))
-                                            .foregroundColor(.white)
-                                            .lineLimit(1)
-                                        Text("\(pl.songIds.count) songs")
-                                            .font(.custom("Quicksand-Regular", size: 12))
-                                            .foregroundColor(Color.white.opacity(0.75))
-                                    }
-                                    .padding(12)
-                                }
-                                .frame(width: 150, height: 190)
-                                .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-                                .shadow(color: Color.black.opacity(colorScheme == .dark ? 0.35 : 0.12), radius: 6, x: 0, y: 3)
-                            }
-                            .buttonStyle(.plain)
-                        }
-                    }
-                    .padding(.horizontal, 16)
-                }
-            } else {
-                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
-                    ForEach(libraryPlaylists.prefix(4)) { pl in
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 14) {
+                    ForEach(libraryPlaylists) { pl in
                         Button {
                             UIImpactFeedbackGenerator(style: .light).impactOccurred()
                             selectedPlaylist = pl
                         } label: {
-                            HStack(spacing: 12) {
-                                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                    .fill(LinearGradient(colors: [Color(hex: 0x6650A4), Color(hex: 0x8B5CF6)], startPoint: .topLeading, endPoint: .bottomTrailing))
-                                    .frame(width: 44, height: 44)
-                                    .overlay(Image(systemName: "music.note.list").foregroundColor(.white))
+                            ZStack(alignment: .bottomLeading) {
+                                colors.surfaceContainerHigh
+                                
+                                Image(systemName: "music.note.list")
+                                    .font(.system(size: 40))
+                                    .foregroundColor(colors.primary.opacity(0.35))
+                                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                
+                                LinearGradient(
+                                    colors: [
+                                        Color.clear,
+                                        Color.black.opacity(0.20),
+                                        Color.black.opacity(0.75),
+                                        Color.black.opacity(0.92)
+                                    ],
+                                    startPoint: .top,
+                                    endPoint: .bottom
+                                )
                                 
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(pl.name)
                                         .font(.custom("Quicksand-Bold", size: 14))
-                                        .foregroundColor(.primary)
+                                        .foregroundColor(.white)
                                         .lineLimit(1)
                                     Text("\(pl.songIds.count) songs")
-                                        .font(.custom("Quicksand-Regular", size: 11))
-                                        .foregroundColor(.secondary)
+                                        .font(.custom("Quicksand-Regular", size: 12))
+                                        .foregroundColor(Color.white.opacity(0.75))
                                 }
-                                Spacer()
+                                .padding(12)
                             }
-                            .padding(10)
-                            .liquidGlass(.regular, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                            .frame(width: 150, height: 190)
+                            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                            .shadow(color: Color.black.opacity(colorScheme == .dark ? 0.35 : 0.12), radius: 6, x: 0, y: 3)
                         }
-                        .buttonStyle(.plain)
+                        .buttonStyle(M3BounceButtonStyle(scale: 0.97))
                     }
                 }
                 .padding(.horizontal, 16)
@@ -518,63 +494,46 @@ public struct ResumeScreenView: View {
         }
     }
     
-    // MARK: - Top Artists Section
+    // MARK: - Top Artists Section (1:1 Android ArtistCircleCard)
     
     private var topArtistsSection: some View {
         let colors = settings.resolveColors(for: colorScheme)
-        let isM3 = settings.uiStyle == .materialYou
         
-        return VStack(alignment: .leading, spacing: 12) {
-            sectionHeader(title: "Artists", subtitle: "Your most played creators")
+        return VStack(alignment: .leading, spacing: 10) {
+            Text("Artists")
+                .font(.custom("Quicksand-Bold", size: 22))
+                .foregroundColor(colors.onSurface)
+                .padding(.horizontal, 16)
             
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 16) {
-                    ForEach(library.artists.prefix(8)) { artist in
+                    ForEach(library.artists.prefix(10)) { artist in
                         Button {
                             UIImpactFeedbackGenerator(style: .light).impactOccurred()
                             selectedArtist = artist
                         } label: {
-                            if isM3 {
-                                // Android Lune 1:1 ArtistCircleCard (120x120 circle without text label)
-                                Group {
-                                    if let data = artist.artworkData, let img = UIImage(data: data) {
-                                        Image(uiImage: img)
-                                            .resizable()
-                                            .aspectRatio(contentMode: .fill)
-                                            .frame(width: 120, height: 120)
-                                            .clipShape(Circle())
-                                    } else {
-                                        Circle()
-                                            .fill(colors.surfaceContainerHigh)
-                                            .frame(width: 120, height: 120)
-                                            .overlay(Image(systemName: "person.fill").font(.system(size: 40)).foregroundColor(colors.primary))
-                                    }
-                                }
-                                .shadow(color: Color.black.opacity(colorScheme == .dark ? 0.35 : 0.12), radius: 6, x: 0, y: 3)
-                            } else {
-                                VStack(spacing: 8) {
-                                    if let data = artist.artworkData, let img = UIImage(data: data) {
-                                        Image(uiImage: img)
-                                            .resizable()
-                                            .aspectRatio(contentMode: .fill)
-                                            .frame(width: 80, height: 80)
-                                            .clipShape(Circle())
-                                    } else {
-                                        Circle()
-                                            .fill(LinearGradient(colors: [Color(hex: 0x6366F1), Color(hex: 0xEC4899)], startPoint: .topLeading, endPoint: .bottomTrailing))
-                                            .frame(width: 80, height: 80)
-                                            .overlay(Image(systemName: "person.fill").font(.system(size: 28)).foregroundColor(.white))
-                                    }
-                                    
-                                    Text(artist.name)
-                                        .font(.custom("Quicksand-Bold", size: 13))
-                                        .foregroundColor(.primary)
-                                        .frame(width: 85)
-                                        .lineLimit(1)
+                            // Android Lune 1:1 ArtistCircleCard (100x100 circle without text label)
+                            Group {
+                                if let data = artist.artworkData, let img = UIImage(data: data) {
+                                    Image(uiImage: img)
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fill)
+                                        .frame(width: 100, height: 100)
+                                        .clipShape(Circle())
+                                } else {
+                                    Circle()
+                                        .fill(colors.surfaceContainerHigh)
+                                        .frame(width: 100, height: 100)
+                                        .overlay(
+                                            Image(systemName: "person.fill")
+                                                .font(.system(size: 36))
+                                                .foregroundColor(colors.primary)
+                                        )
                                 }
                             }
+                            .shadow(color: Color.black.opacity(colorScheme == .dark ? 0.35 : 0.12), radius: 6, x: 0, y: 3)
                         }
-                        .buttonStyle(.plain)
+                        .buttonStyle(M3BounceButtonStyle(scale: 0.96))
                     }
                 }
                 .padding(.horizontal, 16)
@@ -586,10 +545,12 @@ public struct ResumeScreenView: View {
     
     private var topGenresSection: some View {
         let colors = settings.resolveColors(for: colorScheme)
-        let isM3 = settings.uiStyle == .materialYou
         
-        return VStack(alignment: .leading, spacing: 12) {
-            sectionHeader(title: "Genres", subtitle: "Styles in your library")
+        return VStack(alignment: .leading, spacing: 10) {
+            Text("Genres")
+                .font(.custom("Quicksand-Bold", size: 22))
+                .foregroundColor(colors.onSurface)
+                .padding(.horizontal, 16)
             
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 14) {
@@ -598,40 +559,30 @@ public struct ResumeScreenView: View {
                             UIImpactFeedbackGenerator(style: .light).impactOccurred()
                             selectedGenre = GenreItem(name: genre)
                         } label: {
-                            if isM3 {
-                                // Android Lune 1:1 GenreCard (160x110, 20dp corner)
-                                ZStack(alignment: .bottomLeading) {
-                                    colors.surfaceContainerHigh
-                                    
-                                    LinearGradient(
-                                        colors: [
-                                            Color.black.opacity(0.25),
-                                            Color.black.opacity(0.65),
-                                            Color.black.opacity(0.88)
-                                        ],
-                                        startPoint: .top,
-                                        endPoint: .bottom
-                                    )
-                                    
-                                    Text(genre)
-                                        .font(.custom("Quicksand-Bold", size: 16))
-                                        .foregroundColor(.white)
-                                        .lineLimit(1)
-                                        .padding(14)
-                                }
-                                .frame(width: 160, height: 110)
-                                .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-                                .shadow(color: Color.black.opacity(colorScheme == .dark ? 0.35 : 0.12), radius: 6, x: 0, y: 3)
-                            } else {
+                            ZStack(alignment: .bottomLeading) {
+                                colors.surfaceContainerHigh
+                                
+                                LinearGradient(
+                                    colors: [
+                                        Color.black.opacity(0.20),
+                                        Color.black.opacity(0.60),
+                                        Color.black.opacity(0.85)
+                                    ],
+                                    startPoint: .top,
+                                    endPoint: .bottom
+                                )
+                                
                                 Text(genre)
-                                    .font(.custom("Quicksand-Bold", size: 13))
-                                    .foregroundColor(.primary)
-                                    .padding(.horizontal, 16)
-                                    .padding(.vertical, 10)
-                                    .liquidGlass(.regular, in: Capsule(style: .continuous))
+                                    .font(.custom("Quicksand-Bold", size: 16))
+                                    .foregroundColor(.white)
+                                    .lineLimit(1)
+                                    .padding(14)
                             }
+                            .frame(width: 150, height: 95)
+                            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+                            .shadow(color: Color.black.opacity(colorScheme == .dark ? 0.35 : 0.12), radius: 6, x: 0, y: 3)
                         }
-                        .buttonStyle(.plain)
+                        .buttonStyle(M3BounceButtonStyle(scale: 0.96))
                     }
                 }
                 .padding(.horizontal, 16)
@@ -642,8 +593,13 @@ public struct ResumeScreenView: View {
     // MARK: - Recently Added Section
     
     private var recentlyAddedSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            sectionHeader(title: "Recently Added", subtitle: "Latest tracks in your collection")
+        let colors = settings.resolveColors(for: colorScheme)
+        
+        return VStack(alignment: .leading, spacing: 10) {
+            Text("Recently Added")
+                .font(.custom("Quicksand-Bold", size: 22))
+                .foregroundColor(colors.onSurface)
+                .padding(.horizontal, 16)
             
             VStack(spacing: 8) {
                 ForEach(recentlyAdded.prefix(5)) { song in
@@ -654,20 +610,21 @@ public struct ResumeScreenView: View {
                             if let data = song.artworkData, let img = UIImage(data: data) {
                                 Image(uiImage: img)
                                     .resizable()
-                                    .frame(width: 44, height: 44)
-                                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                                    .aspectRatio(contentMode: .fill)
+                                    .frame(width: 48, height: 48)
+                                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                             } else {
-                                ArtworkPlaceholderView(size: 44, cornerRadius: 10)
+                                ArtworkPlaceholderView(size: 48, cornerRadius: 12)
                             }
                             
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(song.title)
                                     .font(.custom("Quicksand-Bold", size: 14))
-                                    .foregroundColor(.primary)
+                                    .foregroundColor(colors.onSurface)
                                     .lineLimit(1)
                                 Text(song.artist)
                                     .font(.custom("Quicksand-Regular", size: 12))
-                                    .foregroundColor(.secondary)
+                                    .foregroundColor(colors.onSurfaceVariant)
                                     .lineLimit(1)
                             }
                             
@@ -675,33 +632,19 @@ public struct ResumeScreenView: View {
                             
                             Text(song.formattedDuration)
                                 .font(.custom("Quicksand-Regular", size: 12))
-                                .foregroundColor(.secondary)
+                                .foregroundColor(colors.onSurfaceVariant)
                         }
                         .padding(10)
-                        .liquidGlass(.regular, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                        .background(
+                            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                .fill(colors.surfaceContainerHigh.opacity(0.70))
+                        )
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(M3BounceButtonStyle(scale: 0.98))
                 }
             }
             .padding(.horizontal, 16)
         }
-    }
-    
-    private func sectionHeader(title: String, subtitle: String) -> some View {
-        let colors = settings.resolveColors(for: colorScheme)
-        return VStack(alignment: .leading, spacing: 2) {
-            Text(title)
-                .font(.custom("Quicksand-Bold", size: 20))
-                .foregroundColor(settings.uiStyle == .materialYou ? colors.onSurface : .primary)
-            
-            if settings.uiStyle != .materialYou {
-                Text(subtitle)
-                    .font(.custom("Quicksand-Regular", size: 13))
-                    .foregroundColor(.secondary)
-            }
-        }
-        .padding(.horizontal, 16)
-        .padding(.top, 4)
     }
     
     // Computed Helpers
@@ -710,5 +653,23 @@ public struct ResumeScreenView: View {
     }
     private var recentlyAdded: [Song] {
         library.allSongs.sorted { $0.dateAdded > $1.dateAdded }
+    }
+    
+    private var topArtistItem: (name: String, count: Int, artworkData: Data?) {
+        guard let first = library.artists.first else {
+            return ("Unknown Artist", 0, nil)
+        }
+        return (first.name, first.songs.count, first.artworkData)
+    }
+    
+    private var topSongItem: (title: String, plays: Int, artworkData: Data?) {
+        guard let first = library.allSongs.first else {
+            return ("No Plays Yet", 0, nil)
+        }
+        return (first.title, 5, first.artworkData)
+    }
+    
+    private var topGenreItem: String {
+        library.genres.first ?? "Pop"
     }
 }

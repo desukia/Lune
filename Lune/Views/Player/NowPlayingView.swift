@@ -38,6 +38,7 @@ public struct NowPlayingView: View {
     @State private var showQueue: Bool = false
     @State private var showEqualizer: Bool = false
     @State private var showSleepTimer: Bool = false
+    @State private var showAddToPlaylist: Bool = false
     
     // Scrubber drag state
     @State private var isDraggingScrubber: Bool = false
@@ -92,6 +93,11 @@ public struct NowPlayingView: View {
         }
         .sheet(isPresented: $showEqualizer) {
             EqualizerView(primaryColor: primaryColor)
+        }
+        .sheet(isPresented: $showAddToPlaylist) {
+            if let song = player.currentSong {
+                AddToPlaylistSheet(song: song)
+            }
         }
         .confirmationDialog("Sleep Timer", isPresented: $showSleepTimer, titleVisibility: .visible) {
             Button("15 Minutes") { player.setSleepTimer(minutes: 15) }
@@ -301,41 +307,37 @@ public struct NowPlayingView: View {
     
     // MARK: - M3 Subviews (1:1 Android Lune Parity)
     private func m3TopHeaderBar(colors: LuneColorScheme) -> some View {
-        HStack(spacing: 8) {
-            // Left: Dismiss Chevron (46x46 squircle, corner radius 14dp, matching Android topBtnSize)
+        HStack(spacing: 10) {
+            // Left: Add To Playlist Button (46x46 squircle, corner radius 14dp, 1:1 Android topBtnSize)
             Button {
                 UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                dismiss()
+                showAddToPlaylist = true
             } label: {
                 RoundedRectangle(cornerRadius: 14, style: .continuous)
                     .fill(Color.black.opacity(colorScheme == .dark ? 0.45 : 0.20))
                     .frame(width: 46, height: 46)
                     .overlay(
-                        Image(systemName: "chevron.down")
-                            .font(.system(size: 18, weight: .bold))
+                        Image(systemName: "text.badge.plus")
+                            .font(.system(size: 20, weight: .bold))
                             .foregroundColor(.white)
                     )
             }
             .buttonStyle(M3BounceButtonStyle())
             
-            Spacer(minLength: 4)
-            
-            // Center: Playing From
-            VStack(spacing: 2) {
-                Text("PLAYING FROM")
-                    .font(.custom("Quicksand-Bold", size: 11))
+            // Middle: Left-aligned "Playing from" & Album/Category (1:1 Android Parity)
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Playing from")
+                    .font(.custom("Quicksand-Bold", size: 13))
                     .foregroundColor(Color.white.opacity(0.70))
-                    .tracking(0.8)
                 
                 Text(player.currentSong?.album.isEmpty == false ? player.currentSong!.album : "All Songs")
-                    .font(.custom("Quicksand-Bold", size: 15))
+                    .font(.custom("Quicksand-Bold", size: 16))
                     .foregroundColor(.white)
                     .lineLimit(1)
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
             
-            Spacer(minLength: 4)
-            
-            // Right: Connected Split Pill [ Equalizer | Sleep Timer ] (Android Lune: 46x46 each with 4dp spacing)
+            // Right: Connected Split Pill [ GraphicEq | Speaker / Options ] (Android Lune: 46x46 each with 4dp spacing)
             HStack(spacing: 4) {
                 // EQ button
                 Button {
@@ -353,7 +355,7 @@ public struct NowPlayingView: View {
                 }
                 .buttonStyle(M3BounceButtonStyle())
                 
-                // Sleep Timer button
+                // Speaker / Options button
                 Button {
                     UIImpactFeedbackGenerator(style: .light).impactOccurred()
                     showSleepTimer = true
@@ -362,16 +364,15 @@ public struct NowPlayingView: View {
                         .fill(Color.black.opacity(colorScheme == .dark ? 0.45 : 0.20))
                         .frame(width: 46, height: 46)
                         .overlay(
-                            Image(systemName: player.sleepTimerMinutesRemaining != nil ? "moon.zzz.fill" : "moon.zzz")
-                                .font(.system(size: 18, weight: player.sleepTimerMinutesRemaining != nil ? .bold : .medium))
-                                .foregroundColor(player.sleepTimerMinutesRemaining != nil ? colors.primary : Color.white.opacity(0.85))
+                            Image(systemName: "speaker.wave.2.fill")
+                                .font(.system(size: 18, weight: .medium))
+                                .foregroundColor(Color.white.opacity(0.85))
                         )
                 }
                 .buttonStyle(M3BounceButtonStyle())
             }
         }
-        .padding(.horizontal, 16)
-        .padding(.top, 4)
+        .padding(.horizontal, 4)
         .padding(.bottom, 6)
     }
     
@@ -415,7 +416,10 @@ public struct NowPlayingView: View {
                     coverDragOffset = value.translation.width * 0.4
                 }
                 .onEnded { value in
-                    if value.translation.width > 60 {
+                    if value.translation.height > 60 && abs(value.translation.height) > abs(value.translation.width) {
+                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                        dismiss()
+                    } else if value.translation.width > 60 {
                         UIImpactFeedbackGenerator(style: .medium).impactOccurred()
                         player.previous()
                     } else if value.translation.width < -60 {
@@ -567,7 +571,7 @@ public struct NowPlayingView: View {
                     .overlay(
                         Image(systemName: "backward.end.fill")
                             .font(.system(size: 28, weight: .bold))
-                            .foregroundColor(colors.primary)
+                            .foregroundColor(.white)
                     )
             }
             .buttonStyle(M3BounceButtonStyle())
@@ -596,7 +600,7 @@ public struct NowPlayingView: View {
                         HStack(spacing: 8) {
                             Image(systemName: player.isPlaying ? "pause.fill" : "play.fill")
                                 .font(.system(size: 32, weight: .bold))
-                                .foregroundColor(colors.onPrimary)
+                                .foregroundColor(Color(hex: 0x141316))
                                 .offset(x: player.isPlaying ? 0 : 2)
                             
                             if showPlayStateLabel {
