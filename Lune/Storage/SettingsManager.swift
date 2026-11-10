@@ -46,7 +46,7 @@ public final class SettingsManager: ObservableObject {
     @AppStorage("app_ui_style") public var uiStyle: AppUIStyle = .materialYou
     
     @AppStorage("theme_mode") public var themeMode: AppThemeMode = .system
-    @AppStorage("custom_palette") public var customPalette: ColorPaletteOption = .defaultViolet
+    @AppStorage("custom_palette") public var customPalette: ColorPaletteOption = .monochrome
     @AppStorage("amoled_mode") public var amoledPitchBlack: Bool = false
     
     @AppStorage("font_family") public var fontFamily: AppFontFamily = .quicksand

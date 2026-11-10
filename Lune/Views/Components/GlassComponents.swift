@@ -222,7 +222,7 @@ public struct ScallopPlayPauseButtonWithProgress: View {
             ZStack {
                 // Background track ring
                 Circle()
-                    .stroke(Color.white.opacity(0.24), lineWidth: 3.5)
+                    .stroke(primaryColor.opacity(0.24), lineWidth: 3.5)
                 
                 // Active progress arc
                 Circle()

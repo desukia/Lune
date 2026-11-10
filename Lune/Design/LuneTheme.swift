@@ -3,8 +3,8 @@
 //  Lune
 //
 //  Exact color palette parity with Lune Android:
-//  - Default Material 3 Lune Violet
-//  - 5 soft custom palettes: Sunset Peach, Sage Green, Ocean Breeze, Lavender Mist, Warm Amber
+//  - Material 3 Monochrome (Black & White - Default)
+//  - 6 soft custom palettes: Default Lune Violet, Sunset Peach, Sage Green, Ocean Breeze, Lavender Mist, Warm Amber
 //  - AMOLED Pitch Black mode
 //
 
@@ -41,17 +41,19 @@ public enum AppThemeMode: String, CaseIterable, Identifiable, Codable {
 }
 
 public enum ColorPaletteOption: Int, CaseIterable, Identifiable, Codable {
-    case defaultViolet = 0
-    case sunsetPeach = 1
-    case sageGreen = 2
-    case oceanBreeze = 3
-    case lavenderMist = 4
-    case warmAmber = 5
+    case monochrome = 0
+    case defaultViolet = 1
+    case sunsetPeach = 2
+    case sageGreen = 3
+    case oceanBreeze = 4
+    case lavenderMist = 5
+    case warmAmber = 6
     
     public var id: Int { rawValue }
     
     public var name: String {
         switch self {
+        case .monochrome: return "Material 3 Monochrome (Black & White)"
         case .defaultViolet: return "Lune Violet"
         case .sunsetPeach: return "Sunset Peach"
         case .sageGreen: return "Sage Green"
@@ -63,6 +65,7 @@ public enum ColorPaletteOption: Int, CaseIterable, Identifiable, Codable {
 }
 
 public struct LuneColorScheme {
+    public let isDark: Bool
     public let primary: Color
     public let secondary: Color
     public let tertiary: Color
@@ -72,6 +75,7 @@ public struct LuneColorScheme {
     public let onSurface: Color
     
     public init(
+        isDark: Bool = true,
         primary: Color,
         secondary: Color,
         tertiary: Color,
@@ -80,6 +84,7 @@ public struct LuneColorScheme {
         surfaceVariant: Color,
         onSurface: Color
     ) {
+        self.isDark = isDark
         self.primary = primary
         self.secondary = secondary
         self.tertiary = tertiary
@@ -89,33 +94,57 @@ public struct LuneColorScheme {
         self.onSurface = onSurface
     }
     
-    // Dynamic Material 3 Expressive Tokens
-    public var onPrimary: Color { Color(hex: 0x381E72) }
-    public var primaryContainer: Color { primary.opacity(0.24) }
+    // Dynamic Material 3 Expressive Tokens (Monochrome / Neutral by default)
+    public var onPrimary: Color { isDark ? Color.black : Color.white }
+    public var primaryContainer: Color { isDark ? Color.white.opacity(0.18) : Color.black.opacity(0.08) }
     public var onPrimaryContainer: Color { onSurface }
     
-    public var onSecondary: Color { Color(hex: 0x332D41) }
-    public var secondaryContainer: Color { Color(hex: 0x2A2634) }
+    public var onSecondary: Color { isDark ? Color.black : Color.white }
+    public var secondaryContainer: Color { isDark ? Color(hex: 0x222222) : Color(hex: 0xEAEAEA) }
     public var onSecondaryContainer: Color { onSurface }
     
-    public var onTertiary: Color { Color(hex: 0x492532) }
-    public var tertiaryContainer: Color { Color(hex: 0x312028) }
+    public var onTertiary: Color { isDark ? Color.black : Color.white }
+    public var tertiaryContainer: Color { isDark ? Color(hex: 0x2A2A2A) : Color(hex: 0xE2E2E6) }
     public var onTertiaryContainer: Color { onSurface }
     
-    public var onSurfaceVariant: Color { onSurface.opacity(0.70) }
+    public var onSurfaceVariant: Color { onSurface.opacity(0.68) }
     
     public var surfaceContainer: Color { surfaceVariant.opacity(0.65) }
-    public var surfaceContainerHigh: Color { surfaceVariant.opacity(0.85) }
-    public var surfaceContainerHighest: Color { surfaceVariant }
+    public var surfaceContainerHigh: Color { isDark ? Color(hex: 0x1E1E1E) : Color(hex: 0xEEEEF0) }
+    public var surfaceContainerHighest: Color { isDark ? Color(hex: 0x282828) : Color(hex: 0xE4E4E8) }
     
     public var onBackground: Color { onSurface }
-    public var outline: Color { onSurface.opacity(0.35) }
-    public var outlineVariant: Color { surfaceVariant.opacity(0.50) }
+    public var outline: Color { isDark ? Color.white.opacity(0.18) : Color.black.opacity(0.12) }
+    public var outlineVariant: Color { isDark ? Color.white.opacity(0.10) : Color.black.opacity(0.06) }
 }
 
 public struct LuneTheme {
-    // 0. Default Lune Violet (Matched directly to Lune Logo #554492)
+    // 0. Material 3 Monochrome (Black & White - Default)
+    public static let monochromeDark = LuneColorScheme(
+        isDark: true,
+        primary: Color.white,
+        secondary: Color(hex: 0xE0E0E0),
+        tertiary: Color(hex: 0xC8C8C8),
+        surface: Color(hex: 0x121212),
+        background: Color(hex: 0x000000),
+        surfaceVariant: Color(hex: 0x222222),
+        onSurface: Color(hex: 0xFFFFFF)
+    )
+    
+    public static let monochromeLight = LuneColorScheme(
+        isDark: false,
+        primary: Color(hex: 0x121212),
+        secondary: Color(hex: 0x333333),
+        tertiary: Color(hex: 0x555555),
+        surface: Color(hex: 0xF5F5F7),
+        background: Color(hex: 0xFFFFFF),
+        surfaceVariant: Color(hex: 0xE8E8EC),
+        onSurface: Color(hex: 0x111111)
+    )
+    
+    // 1. Default Lune Violet (Matched directly to Lune Logo #554492)
     public static let violetLight = LuneColorScheme(
+        isDark: false,
         primary: Color(hex: 0x554492),
         secondary: Color(hex: 0x6E5AA6),
         tertiary: Color(hex: 0x8C74D9),
@@ -126,6 +155,7 @@ public struct LuneTheme {
     )
     
     public static let violetDark = LuneColorScheme(
+        isDark: true,
         primary: Color(hex: 0xD0BCFF),
         secondary: Color(hex: 0xCCC2DC),
         tertiary: Color(hex: 0xEFB8C8),
@@ -135,8 +165,9 @@ public struct LuneTheme {
         onSurface: Color(hex: 0xE6E0E9)
     )
     
-    // 1. Sunset Peach
+    // 2. Sunset Peach
     public static let sunsetPeachLight = LuneColorScheme(
+        isDark: false,
         primary: Color(hex: 0xB04B38),
         secondary: Color(hex: 0x775651),
         tertiary: Color(hex: 0x705C2E),
@@ -146,6 +177,7 @@ public struct LuneTheme {
         onSurface: Color(hex: 0x201A19)
     )
     public static let sunsetPeachDark = LuneColorScheme(
+        isDark: true,
         primary: Color(hex: 0xFFB4AA),
         secondary: Color(hex: 0xE7BDB7),
         tertiary: Color(hex: 0xDEC48C),
@@ -155,8 +187,9 @@ public struct LuneTheme {
         onSurface: Color(hex: 0xEDE0DD)
     )
     
-    // 2. Sage Green
+    // 3. Sage Green
     public static let sageGreenLight = LuneColorScheme(
+        isDark: false,
         primary: Color(hex: 0x386B52),
         secondary: Color(hex: 0x4F6354),
         tertiary: Color(hex: 0x3C6472),
@@ -166,6 +199,7 @@ public struct LuneTheme {
         onSurface: Color(hex: 0x191C19)
     )
     public static let sageGreenDark = LuneColorScheme(
+        isDark: true,
         primary: Color(hex: 0x9FD3B1),
         secondary: Color(hex: 0xB7CCBA),
         tertiary: Color(hex: 0xA3CDDC),
@@ -175,8 +209,9 @@ public struct LuneTheme {
         onSurface: Color(hex: 0xE1E3DF)
     )
     
-    // 3. Ocean Breeze
+    // 4. Ocean Breeze
     public static let oceanBreezeLight = LuneColorScheme(
+        isDark: false,
         primary: Color(hex: 0x2E6580),
         secondary: Color(hex: 0x4F626E),
         tertiary: Color(hex: 0x64597C),
@@ -186,6 +221,7 @@ public struct LuneTheme {
         onSurface: Color(hex: 0x171C1E)
     )
     public static let oceanBreezeDark = LuneColorScheme(
+        isDark: true,
         primary: Color(hex: 0x99CCEA),
         secondary: Color(hex: 0xB7CAD6),
         tertiary: Color(hex: 0xCEC2EC),
@@ -195,8 +231,9 @@ public struct LuneTheme {
         onSurface: Color(hex: 0xDFE3E5)
     )
     
-    // 4. Lavender Mist
+    // 5. Lavender Mist
     public static let lavenderMistLight = LuneColorScheme(
+        isDark: false,
         primary: Color(hex: 0x6E568F),
         secondary: Color(hex: 0x625B71),
         tertiary: Color(hex: 0x7D5262),
@@ -206,6 +243,7 @@ public struct LuneTheme {
         onSurface: Color(hex: 0x1D1A20)
     )
     public static let lavenderMistDark = LuneColorScheme(
+        isDark: true,
         primary: Color(hex: 0xD6BAFF),
         secondary: Color(hex: 0xCCC2DC),
         tertiary: Color(hex: 0xEFB8C9),
@@ -215,8 +253,9 @@ public struct LuneTheme {
         onSurface: Color(hex: 0xE7E0E8)
     )
     
-    // 5. Warm Amber
+    // 6. Warm Amber
     public static let warmAmberLight = LuneColorScheme(
+        isDark: false,
         primary: Color(hex: 0x7F5700),
         secondary: Color(hex: 0x6C5D47),
         tertiary: Color(hex: 0x4F6548),
@@ -226,6 +265,7 @@ public struct LuneTheme {
         onSurface: Color(hex: 0x1F1B13)
     )
     public static let warmAmberDark = LuneColorScheme(
+        isDark: true,
         primary: Color(hex: 0xFCBC43),
         secondary: Color(hex: 0xD7C4A7),
         tertiary: Color(hex: 0xB7CDA6),
@@ -243,6 +283,7 @@ public struct LuneTheme {
         let base: LuneColorScheme
         if isDark {
             switch palette {
+            case .monochrome: base = monochromeDark
             case .defaultViolet: base = violetDark
             case .sunsetPeach: base = sunsetPeachDark
             case .sageGreen: base = sageGreenDark
@@ -252,6 +293,7 @@ public struct LuneTheme {
             }
         } else {
             switch palette {
+            case .monochrome: base = monochromeLight
             case .defaultViolet: base = violetLight
             case .sunsetPeach: base = sunsetPeachLight
             case .sageGreen: base = sageGreenLight
@@ -263,6 +305,7 @@ public struct LuneTheme {
         
         if isDark && amoled {
             return LuneColorScheme(
+                isDark: true,
                 primary: base.primary,
                 secondary: base.secondary,
                 tertiary: base.tertiary,

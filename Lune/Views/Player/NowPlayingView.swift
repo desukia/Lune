@@ -55,6 +55,11 @@ public struct NowPlayingView: View {
     @State private var showPlayStateLabel: Bool = false
     @State private var playStateWorkItem: DispatchWorkItem? = nil
     
+    // Lyrics Controls (1:1 Android LyricsActivity Parity)
+    @State private var lyricsAlignment: TextAlignment = .leading
+    @State private var lyricsOffsetMs: Double = 0.0
+    @State private var showLyricsOffsetBar: Bool = false
+    
     @MainActor
     public init(
         player: AudioPlayerManager,
@@ -229,8 +234,8 @@ public struct NowPlayingView: View {
         let coverSize = isCompact ? 210 : min(screenWidth - 56, screenHeight * 0.38)
         
         ZStack {
-            // 1. Android Deep Black base
-            Color.black
+            // 1. Material 3 Adaptive Background (Pure Black in Dark, Pure White in Light)
+            (colors.isDark ? Color.black : colors.background)
             
             // 2. Global Artwork Blur Background (1:1 Android FullPlayer Parity)
             if let data = player.currentSong?.artworkData ?? library.allSongs.first?.artworkData,
@@ -241,9 +246,9 @@ public struct NowPlayingView: View {
                     .frame(width: screenWidth, height: screenHeight)
                     .clipped()
                     .blur(radius: 45)
-                    .opacity(0.38)
+                    .opacity(colors.isDark ? 0.38 : 0.16)
                     .overlay(
-                        Color.black.opacity(0.48)
+                        colors.isDark ? Color.black.opacity(0.48) : Color.white.opacity(0.72)
                     )
             }
             
@@ -307,37 +312,42 @@ public struct NowPlayingView: View {
     
     // MARK: - M3 Subviews (1:1 Android Lune Parity)
     private func m3TopHeaderBar(colors: LuneColorScheme) -> some View {
-        HStack(spacing: 10) {
-            // Left: Add To Playlist Button (46x46 squircle, corner radius 14dp, 1:1 Android topBtnSize)
+        let isDark = colors.isDark
+        let pillBg = isDark ? Color.black.opacity(0.45) : Color.black.opacity(0.08)
+        let iconTint = isDark ? Color.white.opacity(0.85) : Color(hex: 0x141414)
+        
+        return HStack(spacing: 10) {
+            // Left: Add To Playlist Button
             Button {
                 UIImpactFeedbackGenerator(style: .light).impactOccurred()
                 showAddToPlaylist = true
             } label: {
                 RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .fill(Color.black.opacity(colorScheme == .dark ? 0.45 : 0.20))
+                    .fill(pillBg)
                     .frame(width: 46, height: 46)
                     .overlay(
                         Image(systemName: "text.badge.plus")
                             .font(.system(size: 20, weight: .bold))
-                            .foregroundColor(.white)
+                            .foregroundColor(iconTint)
                     )
             }
             .buttonStyle(M3BounceButtonStyle())
             
-            // Middle: Left-aligned "Playing from" & Album/Category (1:1 Android Parity)
+            // Middle: Left-aligned "Playing from" & Album/Category
             VStack(alignment: .leading, spacing: 2) {
-                Text("Playing from")
-                    .font(.custom("Quicksand-Bold", size: 13))
-                    .foregroundColor(Color.white.opacity(0.70))
+                Text(activeMode == .lyrics ? "LIVE LYRICS" : "PLAYING FROM")
+                    .font(.custom("Quicksand-Bold", size: 10))
+                    .tracking(1.0)
+                    .foregroundColor(colors.onSurfaceVariant)
                 
                 Text(player.currentSong?.album.isEmpty == false ? player.currentSong!.album : "All Songs")
                     .font(.custom("Quicksand-Bold", size: 16))
-                    .foregroundColor(.white)
+                    .foregroundColor(colors.onSurface)
                     .lineLimit(1)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             
-            // Right: Connected Split Pill [ GraphicEq | Speaker / Options ] (Android Lune: 46x46 each with 4dp spacing)
+            // Right: Connected Split Pill [ GraphicEq | Speaker / Options ]
             HStack(spacing: 4) {
                 // EQ button
                 Button {
@@ -345,12 +355,12 @@ public struct NowPlayingView: View {
                     showEqualizer = true
                 } label: {
                     UnevenRoundedPillSide(topLeading: 23, bottomLeading: 23, bottomTrailing: 5, topTrailing: 5)
-                        .fill(Color.black.opacity(colorScheme == .dark ? 0.45 : 0.20))
+                        .fill(pillBg)
                         .frame(width: 46, height: 46)
                         .overlay(
                             Image(systemName: "slider.vertical.3")
                                 .font(.system(size: 18, weight: .semibold))
-                                .foregroundColor(Color.white.opacity(0.85))
+                                .foregroundColor(iconTint)
                         )
                 }
                 .buttonStyle(M3BounceButtonStyle())
@@ -361,12 +371,12 @@ public struct NowPlayingView: View {
                     showSleepTimer = true
                 } label: {
                     UnevenRoundedPillSide(topLeading: 5, bottomLeading: 5, bottomTrailing: 23, topTrailing: 23)
-                        .fill(Color.black.opacity(colorScheme == .dark ? 0.45 : 0.20))
+                        .fill(pillBg)
                         .frame(width: 46, height: 46)
                         .overlay(
                             Image(systemName: "speaker.wave.2.fill")
                                 .font(.system(size: 18, weight: .medium))
-                                .foregroundColor(Color.white.opacity(0.85))
+                                .foregroundColor(iconTint)
                         )
                 }
                 .buttonStyle(M3BounceButtonStyle())
@@ -434,49 +444,52 @@ public struct NowPlayingView: View {
     }
     
     private func m3TrackInfoRow(colors: LuneColorScheme) -> some View {
-        HStack(alignment: .center, spacing: 12) {
+        let isDark = colors.isDark
+        let badgePillBg = isDark ? Color.black.opacity(0.45) : Color.black.opacity(0.08)
+        let iconTint = isDark ? Color.white.opacity(0.85) : Color(hex: 0x141414)
+        
+        return HStack(alignment: .center, spacing: 12) {
             VStack(alignment: .leading, spacing: 6) {
-                // Song Title (White on dark blurred artwork background)
+                // Song Title
                 Text(player.currentSong?.title ?? "No Song Playing")
                     .font(.custom("Quicksand-Bold", size: 24))
-                    .foregroundColor(.white)
+                    .foregroundColor(colors.onSurface)
                     .lineLimit(1)
                 
                 // Chips Row (Artist, Hi-Fi, Format)
                 HStack(spacing: 6) {
-                    // Artist Chip (Pill with container background - Android Lune Parity)
                     Text(player.currentSong?.artist ?? "Unknown Artist")
                         .font(.custom("Quicksand-Bold", size: 12))
-                        .foregroundColor(.white)
+                        .foregroundColor(colors.onSurface)
                         .padding(.horizontal, 12)
                         .padding(.vertical, 4)
-                        .background(Color.white.opacity(0.18))
+                        .background(isDark ? Color.white.opacity(0.14) : Color.black.opacity(0.08))
                         .clipShape(Capsule())
                         .lineLimit(1)
                     
                     if player.currentSong?.isHiFi == true {
                         Text("HI-FI")
                             .font(.system(size: 10, weight: .bold))
-                            .foregroundColor(Color(hex: 0x00B0FF))
+                            .foregroundColor(isDark ? Color(hex: 0x00E5FF) : Color(hex: 0x00838F))
                             .padding(.horizontal, 8)
                             .padding(.vertical, 4)
-                            .background(Color(hex: 0x00E5FF).opacity(0.18))
+                            .background(isDark ? Color(hex: 0x00E5FF).opacity(0.18) : Color(hex: 0x00838F).opacity(0.12))
                             .clipShape(Capsule())
                     }
                     
                     Text(player.currentSong?.isHiFi == true ? "FLAC" : "MP3")
                         .font(.system(size: 10, weight: .bold))
-                        .foregroundColor(Color.white.opacity(0.70))
+                        .foregroundColor(colors.onSurfaceVariant)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 4)
-                        .background(Color.white.opacity(0.12))
+                        .background(isDark ? Color.white.opacity(0.12) : Color.black.opacity(0.06))
                         .clipShape(Capsule())
                 }
             }
             
             Spacer(minLength: 8)
             
-            // Right Action: Connected Split Pill [ Lyrics | Favorite ] (Android Lune: 48x48 each with 4dp gap)
+            // Right Action: Connected Split Pill [ Lyrics | Favorite ]
             HStack(spacing: 4) {
                 // Lyrics Button
                 Button {
@@ -486,12 +499,12 @@ public struct NowPlayingView: View {
                     }
                 } label: {
                     UnevenRoundedPillSide(topLeading: 24, bottomLeading: 24, bottomTrailing: 4, topTrailing: 4)
-                        .fill(Color.black.opacity(colorScheme == .dark ? 0.45 : 0.20))
+                        .fill(activeMode == .lyrics ? (isDark ? Color.white.opacity(0.25) : Color.black.opacity(0.18)) : badgePillBg)
                         .frame(width: 48, height: 48)
                         .overlay(
                             Image(systemName: "music.note.list")
                                 .font(.system(size: 20, weight: .semibold))
-                                .foregroundColor(activeMode == .lyrics ? .white : Color.white.opacity(0.85))
+                                .foregroundColor(activeMode == .lyrics ? colors.onSurface : iconTint)
                         )
                 }
                 .buttonStyle(M3BounceButtonStyle())
@@ -504,12 +517,12 @@ public struct NowPlayingView: View {
                         library.toggleFavorite(for: song)
                     } label: {
                         UnevenRoundedPillSide(topLeading: 4, bottomLeading: 4, bottomTrailing: 24, topTrailing: 24)
-                            .fill(Color.black.opacity(colorScheme == .dark ? 0.45 : 0.20))
+                            .fill(badgePillBg)
                             .frame(width: 48, height: 48)
                             .overlay(
                                 Image(systemName: isFav ? "heart.fill" : "heart")
                                     .font(.system(size: 20, weight: .semibold))
-                                    .foregroundColor(isFav ? Color(hex: 0xEF4444) : Color.white.opacity(0.85))
+                                    .foregroundColor(isFav ? Color(hex: 0xEF4444) : iconTint)
                                     .scaleEffect(isFav ? 1.15 : 1.0)
                                     .animation(.spring(response: 0.25, dampingFraction: 0.6), value: isFav)
                             )
@@ -521,7 +534,13 @@ public struct NowPlayingView: View {
     }
     
     private func m3ProgressSection(colors: LuneColorScheme) -> some View {
-        VStack(spacing: 6) {
+        let isDark = colors.isDark
+        let sliderColor = isDark ? Color.white : Color(hex: 0x141414)
+        let trackColor = isDark ? Color.white.opacity(0.24) : Color.black.opacity(0.18)
+        let badgeBg = isDark ? Color.black.opacity(0.50) : Color.black.opacity(0.08)
+        let badgeFg = isDark ? Color.white.opacity(0.90) : Color(hex: 0x141414)
+        
+        return VStack(spacing: 6) {
             M3WavyProgressIndicator(
                 progress: Binding(
                     get: { Double(player.playbackProgress) },
@@ -529,8 +548,8 @@ public struct NowPlayingView: View {
                 ),
                 isPlaying: player.isPlaying,
                 isWavy: settings.progressBarWave,
-                primaryColor: .white,
-                trackColor: Color.white.opacity(0.24)
+                primaryColor: sliderColor,
+                trackColor: trackColor
             ) { newProgress in
                 player.seek(to: newProgress * player.duration)
             }
@@ -539,44 +558,51 @@ public struct NowPlayingView: View {
             HStack {
                 Text(formatTime(player.currentTime))
                     .font(.custom("Quicksand-Bold", size: 11))
-                    .foregroundColor(Color.white.opacity(0.90))
+                    .foregroundColor(badgeFg)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 2)
-                    .background(Color.black.opacity(colorScheme == .dark ? 0.50 : 0.25))
+                    .background(badgeBg)
                     .clipShape(Capsule())
                 
                 Spacer()
                 
                 Text(formatTime(player.duration))
                     .font(.custom("Quicksand-Bold", size: 11))
-                    .foregroundColor(Color.white.opacity(0.90))
+                    .foregroundColor(badgeFg)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 2)
-                    .background(Color.black.opacity(colorScheme == .dark ? 0.50 : 0.25))
+                    .background(badgeBg)
                     .clipShape(Capsule())
             }
         }
     }
     
     private func m3ControlsRow(colors: LuneColorScheme) -> some View {
-        HStack(spacing: 14) {
+        let isDark = colors.isDark
+        let playBtnBg = isDark ? Color.white : Color(hex: 0x141414)
+        let playBtnFg = isDark ? Color.black : Color.white
+        let skipBtnBg = isDark ? Color.black.opacity(0.40) : Color.black.opacity(0.08)
+        let skipBtnFg = isDark ? Color.white : Color(hex: 0x141414)
+        
+        return HStack(spacing: 14) {
             // Previous Track: 68x68 Squircle Button with SkipPrevious (|<) icon
             Button {
                 UIImpactFeedbackGenerator(style: .medium).impactOccurred()
                 player.previous()
             } label: {
                 RoundedRectangle(cornerRadius: 26, style: .continuous)
-                    .fill(Color.black.opacity(colorScheme == .dark ? 0.40 : 0.12))
+                    .fill(skipBtnBg)
                     .frame(width: 68, height: 68)
                     .overlay(
                         Image(systemName: "backward.end.fill")
                             .font(.system(size: 28, weight: .bold))
-                            .foregroundColor(.white)
+                            .foregroundColor(skipBtnFg)
                     )
             }
             .buttonStyle(M3BounceButtonStyle())
             
             // Center Play/Pause Button: Large Horizontal Pill (96 -> 156 animated width on tap)
+            // Solid clean pill with contrasting icon, NO glow
             Button {
                 UIImpactFeedbackGenerator(style: .medium).impactOccurred()
                 player.togglePlayPause()
@@ -594,19 +620,19 @@ public struct NowPlayingView: View {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1.3, execute: item)
             } label: {
                 RoundedRectangle(cornerRadius: 30, style: .continuous)
-                    .fill(Color.white)
+                    .fill(playBtnBg)
                     .frame(width: showPlayStateLabel ? 156 : 96, height: 68)
                     .overlay(
                         HStack(spacing: 8) {
                             Image(systemName: player.isPlaying ? "pause.fill" : "play.fill")
                                 .font(.system(size: 32, weight: .bold))
-                                .foregroundColor(.black)
+                                .foregroundColor(playBtnFg)
                                 .offset(x: player.isPlaying ? 0 : 2)
                             
                             if showPlayStateLabel {
                                 Text(player.isPlaying ? "Play" : "Pause")
                                     .font(.custom("Quicksand-Bold", size: 16))
-                                    .foregroundColor(.black)
+                                    .foregroundColor(playBtnFg)
                                     .transition(.opacity.combined(with: .scale(scale: 0.85)))
                             }
                         }
@@ -620,12 +646,12 @@ public struct NowPlayingView: View {
                 player.next()
             } label: {
                 RoundedRectangle(cornerRadius: 26, style: .continuous)
-                    .fill(Color.black.opacity(colorScheme == .dark ? 0.40 : 0.12))
+                    .fill(skipBtnBg)
                     .frame(width: 68, height: 68)
                     .overlay(
                         Image(systemName: "forward.end.fill")
                             .font(.system(size: 28, weight: .bold))
-                            .foregroundColor(.white)
+                            .foregroundColor(skipBtnFg)
                     )
             }
             .buttonStyle(M3BounceButtonStyle())
@@ -676,32 +702,31 @@ public struct NowPlayingView: View {
         colors: LuneColorScheme,
         action: @escaping () -> Void
     ) -> some View {
-        Button {
+        let isDark = colors.isDark
+        
+        return Button {
             UIImpactFeedbackGenerator(style: .light).impactOccurred()
             action()
         } label: {
             HStack(spacing: 6) {
-                // Inner icon badge: 28x28
-                // Active: RoundedRectangle(8) filled with solid White, icon Color.black
-                // Inactive: Circle() filled with White.opacity(0.14), icon White.opacity(0.85)
                 ZStack {
                     if isActive {
                         RoundedRectangle(cornerRadius: 8, style: .continuous)
-                            .fill(Color.white)
+                            .fill(isDark ? Color.white : Color(hex: 0x141414))
                     } else {
                         Circle()
-                            .fill(Color.white.opacity(0.14))
+                            .fill(isDark ? Color.white.opacity(0.14) : Color.black.opacity(0.08))
                     }
                     
                     Image(systemName: icon)
                         .font(.system(size: 15, weight: isActive ? .bold : .semibold))
-                        .foregroundColor(isActive ? .black : Color.white.opacity(0.85))
+                        .foregroundColor(isActive ? (isDark ? Color.black : Color.white) : colors.onSurface)
                 }
                 .frame(width: 28, height: 28)
                 
                 Text(label)
                     .font(.custom("Quicksand-Bold", size: 11.5))
-                    .foregroundColor(isActive ? .white : Color.white.opacity(0.80))
+                    .foregroundColor(isActive ? colors.onSurface : colors.onSurfaceVariant)
                     .lineLimit(1)
             }
             .padding(.leading, 6)
@@ -712,10 +737,10 @@ public struct NowPlayingView: View {
                 Group {
                     if isActive {
                         RoundedRectangle(cornerRadius: 12, style: .continuous)
-                            .fill(Color.white.opacity(0.22))
+                            .fill(isDark ? Color.white.opacity(0.22) : Color.black.opacity(0.10))
                     } else {
                         Capsule()
-                            .fill(Color.black.opacity(colorScheme == .dark ? 0.50 : 0.25))
+                            .fill(isDark ? Color.black.opacity(0.40) : Color.black.opacity(0.06))
                     }
                 }
             )
@@ -753,81 +778,272 @@ public struct NowPlayingView: View {
     }
     
     private func m3LyricsContentView(colors: LuneColorScheme) -> some View {
-        VStack(spacing: 12) {
-            HStack {
-                Text("Live Lyrics")
-                    .font(.custom("Quicksand-Bold", size: 18))
-                    .foregroundColor(colors.onSurface)
+        let isDark = colors.isDark
+        let activeIdx = lyricsManager.findActiveLineIndex(
+            lines: lyricsManager.lines,
+            currentTime: player.currentTime + (lyricsOffsetMs / 1000.0)
+        )
+        
+        return VStack(spacing: 8) {
+            // Header Bar: Live Lyrics title + Sync badge + M3 Toolbar Pill
+            HStack(spacing: 8) {
+                VStack(alignment: .leading, spacing: 2) {
+                    HStack(spacing: 6) {
+                        Text("Live Lyrics")
+                            .font(.custom("Quicksand-Bold", size: 17))
+                            .foregroundColor(colors.onSurface)
+                        
+                        if lyricsManager.isSynced {
+                            Text("SYNCED")
+                                .font(.custom("Quicksand-Bold", size: 8.5))
+                                .foregroundColor(isDark ? Color.white.opacity(0.90) : Color.black.opacity(0.85))
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .background(
+                                    Capsule()
+                                        .fill(isDark ? Color.white.opacity(0.18) : Color.black.opacity(0.08))
+                                )
+                        }
+                    }
+                    
+                    if lyricsOffsetMs != 0 {
+                        Text(String(format: "Offset: %+.1fs", lyricsOffsetMs / 1000.0))
+                            .font(.custom("Quicksand-Medium", size: 11))
+                            .foregroundColor(colors.onSurfaceVariant)
+                    }
+                }
                 
                 Spacer()
                 
-                Button {
-                    withAnimation(.spring(response: 0.35, dampingFraction: 0.75)) {
-                        activeMode = .artwork
+                // M3 Divided Toolbar Pill: [ Alignment | Offset ] + Close button
+                HStack(spacing: 6) {
+                    HStack(spacing: 0) {
+                        // 1. Text Alignment Toggle
+                        Button {
+                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                            withAnimation(.spring(response: 0.28, dampingFraction: 0.70)) {
+                                lyricsAlignment = (lyricsAlignment == .leading) ? .center : .leading
+                            }
+                        } label: {
+                            Image(systemName: lyricsAlignment == .leading ? "text.alignleft" : "text.aligncenter")
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundColor(colors.onSurface)
+                                .frame(width: 32, height: 32)
+                        }
+                        .buttonStyle(M3BounceButtonStyle(scale: 0.92))
+                        
+                        // Divider
+                        Rectangle()
+                            .fill(isDark ? Color.white.opacity(0.20) : Color.black.opacity(0.14))
+                            .frame(width: 1, height: 14)
+                        
+                        // 2. Timing Offset Toggle
+                        Button {
+                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                            withAnimation(.spring(response: 0.32, dampingFraction: 0.75)) {
+                                showLyricsOffsetBar.toggle()
+                            }
+                        } label: {
+                            Image(systemName: "slider.horizontal.3")
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundColor(showLyricsOffsetBar ? (isDark ? Color.black : Color.white) : colors.onSurface)
+                                .frame(width: 32, height: 32)
+                                .background(
+                                    Group {
+                                        if showLyricsOffsetBar {
+                                            Circle().fill(colors.onSurface)
+                                        } else {
+                                            Color.clear
+                                        }
+                                    }
+                                )
+                        }
+                        .buttonStyle(M3BounceButtonStyle(scale: 0.92))
                     }
-                } label: {
-                    Image(systemName: "xmark.circle.fill")
-                        .font(.system(size: 22))
-                        .foregroundColor(colors.onSurfaceVariant)
+                    .padding(.horizontal, 3)
+                    .frame(height: 34)
+                    .background(
+                        Capsule()
+                            .fill(isDark ? Color.white.opacity(0.12) : Color.black.opacity(0.08))
+                            .overlay(
+                                Capsule()
+                                    .stroke(isDark ? Color.white.opacity(0.16) : Color.black.opacity(0.10), lineWidth: 0.8)
+                            )
+                    )
+                    
+                    // 3. Close Lyrics / Back to Cover
+                    Button {
+                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                        withAnimation(.spring(response: 0.35, dampingFraction: 0.75)) {
+                            activeMode = .artwork
+                        }
+                    } label: {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 13, weight: .bold))
+                            .foregroundColor(colors.onSurface)
+                            .frame(width: 34, height: 34)
+                            .background(
+                                Circle()
+                                    .fill(isDark ? Color.white.opacity(0.12) : Color.black.opacity(0.08))
+                            )
+                    }
+                    .buttonStyle(M3BounceButtonStyle(scale: 0.92))
                 }
             }
-            .padding(.horizontal, 24)
+            .padding(.horizontal, 16)
             
+            // Collapsible Sync Offset Control Bar (1:1 Android Lune Timing Adjustment)
+            if showLyricsOffsetBar {
+                HStack(spacing: 6) {
+                    lyricsOffsetButton(label: "-0.5s", colors: colors) { lyricsOffsetMs -= 500 }
+                    lyricsOffsetButton(label: "-0.1s", colors: colors) { lyricsOffsetMs -= 100 }
+                    
+                    if lyricsOffsetMs != 0 {
+                        Button("Reset") {
+                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                            withAnimation { lyricsOffsetMs = 0 }
+                        }
+                        .font(.custom("Quicksand-Bold", size: 10.5))
+                        .foregroundColor(colors.onSurface)
+                        .padding(.horizontal, 6)
+                    }
+                    
+                    Spacer()
+                    
+                    lyricsOffsetButton(label: "+0.1s", colors: colors) { lyricsOffsetMs += 100 }
+                    lyricsOffsetButton(label: "+0.5s", colors: colors) { lyricsOffsetMs += 500 }
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 5)
+                .background(
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .fill(isDark ? Color(hex: 0x1E1E1E) : Color(hex: 0xEAEAEA))
+                )
+                .padding(.horizontal, 16)
+                .transition(.opacity.combined(with: .move(edge: .top)))
+            }
+            
+            // Lyrics Lines Body with Masked Top/Bottom Fade
             if lyricsManager.isLoading {
-                ProgressView()
-                    .tint(colors.primary)
-                    .frame(maxHeight: .infinity)
-            } else if lyricsManager.lines.isEmpty {
                 VStack(spacing: 12) {
-                    Image(systemName: "quote.bubble")
-                        .font(.system(size: 36))
-                        .foregroundColor(colors.onSurfaceVariant.opacity(0.5))
-                    Text("No lyrics available")
-                        .font(.custom("Quicksand-Bold", size: 16))
+                    ProgressView()
+                        .tint(colors.onSurface)
+                        .scaleEffect(1.1)
+                    Text("Searching lyrics...")
+                        .font(.custom("Quicksand-Bold", size: 13))
                         .foregroundColor(colors.onSurfaceVariant)
-                    Button("Search Again") {
+                }
+                .frame(maxHeight: .infinity)
+            } else if lyricsManager.lines.isEmpty {
+                VStack(spacing: 10) {
+                    Image(systemName: "quote.bubble")
+                        .font(.system(size: 34))
+                        .foregroundColor(colors.onSurfaceVariant.opacity(0.50))
+                    Text("No lyrics available")
+                        .font(.custom("Quicksand-Bold", size: 15))
+                        .foregroundColor(colors.onSurface)
+                    Button {
                         if let s = player.currentSong {
                             Task { await lyricsManager.fetchLyrics(for: s) }
                         }
+                    } label: {
+                        Text("Search Again")
+                            .font(.custom("Quicksand-Bold", size: 12))
+                            .foregroundColor(isDark ? Color.black : Color.white)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 8)
+                            .background(
+                                Capsule()
+                                    .fill(isDark ? Color.white : Color(hex: 0x141414))
+                            )
                     }
-                    .font(.custom("Quicksand-Bold", size: 13))
-                    .foregroundColor(colors.primary)
+                    .buttonStyle(M3BounceButtonStyle())
                 }
                 .frame(maxHeight: .infinity)
             } else {
                 ScrollViewReader { proxy in
                     ScrollView(showsIndicators: false) {
-                        VStack(alignment: .leading, spacing: 20) {
-                            let activeIdx = lyricsManager.findActiveLineIndex(lines: lyricsManager.lines, currentTime: player.currentTime)
+                        VStack(alignment: lyricsAlignment == .center ? .center : .leading, spacing: 18) {
+                            Spacer(minLength: 20)
+                            
                             ForEach(Array(lyricsManager.lines.enumerated()), id: \.element.id) { index, line in
                                 let isActive = activeIdx == index
+                                
                                 Button {
                                     if line.timestamp >= 0 {
-                                        player.seek(to: line.timestamp)
+                                        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                                        player.seek(to: max(0, line.timestamp - (lyricsOffsetMs / 1000.0)))
                                     }
                                 } label: {
                                     Text(line.text)
-                                        .font(.custom("Quicksand-Bold", size: 22))
-                                        .foregroundColor(isActive ? colors.primary : colors.onSurfaceVariant.opacity(0.40))
-                                        .scaleEffect(isActive ? 1.03 : 1.0, anchor: .leading)
-                                        .animation(.easeInOut(duration: 0.25), value: isActive)
+                                        .font(.custom("Quicksand-Bold", size: isActive ? 24 : 20))
+                                        .foregroundColor(
+                                            isActive
+                                                ? colors.onSurface
+                                                : colors.onSurface.opacity(0.32)
+                                        )
+                                        .multilineTextAlignment(lyricsAlignment)
+                                        .frame(maxWidth: .infinity, alignment: lyricsAlignment == .center ? .center : .leading)
+                                        .scaleEffect(isActive ? 1.08 : 1.0, anchor: lyricsAlignment == .center ? .center : .leading)
+                                        .shadow(
+                                            color: isActive ? (isDark ? Color.white.opacity(0.35) : Color.black.opacity(0.12)) : Color.clear,
+                                            radius: isActive ? 8 : 0,
+                                            x: 0,
+                                            y: 0
+                                        )
+                                        .padding(.horizontal, 24)
+                                        .padding(.vertical, 6)
+                                        .animation(.spring(response: 0.35, dampingFraction: 0.65), value: isActive)
                                 }
                                 .buttonStyle(.plain)
                                 .id(index)
                             }
+                            
+                            Spacer(minLength: 40)
                         }
-                        .padding(.horizontal, 28)
-                        .padding(.vertical, 20)
                     }
-                    .onChange(of: player.currentTime) { _, newTime in
-                        let activeIdx = lyricsManager.findActiveLineIndex(lines: lyricsManager.lines, currentTime: newTime)
-                        withAnimation {
-                            proxy.scrollTo(activeIdx, anchor: .center)
+                    .mask(
+                        LinearGradient(
+                            stops: [
+                                .init(color: .clear, location: 0.0),
+                                .init(color: .black, location: 0.08),
+                                .init(color: .black, location: 0.88),
+                                .init(color: .clear, location: 1.0)
+                            ],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+                    .onChange(of: activeIdx) { _, newIndex in
+                        if let idx = newIndex {
+                            withAnimation(.easeInOut(duration: 0.40)) {
+                                proxy.scrollTo(idx, anchor: .center)
+                            }
                         }
                     }
                 }
             }
         }
+    }
+    
+    private func lyricsOffsetButton(label: String, colors: LuneColorScheme, action: @escaping () -> Void) -> some View {
+        Button {
+            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+            withAnimation(.spring(response: 0.25, dampingFraction: 0.70)) {
+                action()
+            }
+        } label: {
+            Text(label)
+                .font(.custom("Quicksand-Bold", size: 11))
+                .foregroundColor(colors.onSurface)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .fill(colors.isDark ? Color.white.opacity(0.12) : Color.black.opacity(0.08))
+                )
+        }
+        .buttonStyle(M3BounceButtonStyle(scale: 0.94))
     }
     
     // MARK: - 1. Top Header Bar

@@ -90,29 +90,29 @@ public struct MiniPlayerView: View {
                         ZStack {
                             // Circular track ring
                             Circle()
-                                .stroke(Color.white.opacity(0.24), lineWidth: 3.5)
+                                .stroke((colors.isDark ? Color.white : Color.black).opacity(0.20), lineWidth: 3.5)
                             
-                            // Active progress arc (Android Lune: clean white on blur)
+                            // Active progress arc (Android Lune M3: adaptive monochrome)
                             Circle()
                                 .trim(from: 0, to: CGFloat(player.playbackProgress))
-                                .stroke(Color.white, style: StrokeStyle(lineWidth: 3.5, lineCap: .round))
+                                .stroke(colors.isDark ? Color.white : Color(hex: 0x121212), style: StrokeStyle(lineWidth: 3.5, lineCap: .round))
                                 .rotationEffect(.degrees(-90))
                                 .animation(.linear(duration: 0.25), value: player.playbackProgress)
                             
-                            // Center Icons (Authentic Android Lune: clean white, NO solid circle background)
+                            // Center Icons (Android Lune: adaptive monochrome)
                             if player.isPlaying {
                                 HStack(spacing: 4) {
                                     Capsule()
-                                        .fill(Color.white)
+                                        .fill(colors.isDark ? Color.white : Color(hex: 0x121212))
                                         .frame(width: 4, height: 16)
                                     Capsule()
-                                        .fill(Color.white)
+                                        .fill(colors.isDark ? Color.white : Color(hex: 0x121212))
                                         .frame(width: 4, height: 16)
                                 }
                             } else {
                                 Image(systemName: "play.fill")
                                     .font(.system(size: 20, weight: .bold))
-                                    .foregroundColor(Color.white)
+                                    .foregroundColor(colors.isDark ? Color.white : Color(hex: 0x121212))
                                     .offset(x: 1.5)
                             }
                         }

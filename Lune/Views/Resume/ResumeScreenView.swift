@@ -326,7 +326,7 @@ public struct ResumeScreenView: View {
                         ScallopPlayPauseButtonWithProgress(
                             isPlaying: player.isPlaying && player.currentSong?.id == song.id,
                             progress: player.playbackProgress,
-                            primaryColor: .white,
+                            primaryColor: colors.isDark ? .white : Color(hex: 0x121212),
                             size: 48
                         ) {
                             if player.currentSong?.id == song.id {

@@ -33,8 +33,8 @@ public struct MainView: View {
         
         NavigationStack {
             ZStack(alignment: .bottom) {
-                // Background (Android Deep Black + Global Blur across entire interface)
-                Color.black
+                // Background (Material 3 Adaptive: Pure Black in Dark, Pure White in Light + Ambient Blur)
+                (colors.isDark ? Color.black : colors.background)
                     .ignoresSafeArea()
                 
                 if let data = player.currentSong?.artworkData ?? library.allSongs.first?.artworkData,
@@ -46,9 +46,9 @@ public struct MainView: View {
                             .frame(width: bgGeo.size.width, height: bgGeo.size.height)
                             .clipped()
                             .blur(radius: 45)
-                            .opacity(0.38)
+                            .opacity(colors.isDark ? 0.38 : 0.16)
                             .overlay(
-                                Color.black.opacity(0.48)
+                                colors.isDark ? Color.black.opacity(0.48) : Color.white.opacity(0.72)
                             )
                     }
                     .ignoresSafeArea()
@@ -190,37 +190,24 @@ public struct MainView: View {
     
     @ViewBuilder
     private func topBarButton(icon: String, colors: LuneColorScheme, action: @escaping () -> Void) -> some View {
-        if settings.uiStyle == .materialYou {
-            Button {
-                UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                action()
-            } label: {
-                Image(systemName: icon)
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundColor(colors.onSurface)
-                    .frame(width: 40, height: 40)
-                    .background(
-                        Circle()
-                            .fill(colors.surfaceContainerHigh)
-                            .overlay(
-                                Circle()
-                                    .stroke(colors.outlineVariant.opacity(0.35), lineWidth: 0.8)
-                            )
-                    )
-            }
-            .buttonStyle(M3BounceButtonStyle())
-        } else {
-            Button {
-                UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                action()
-            } label: {
-                Image(systemName: icon)
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundColor(colors.onSurface)
-                    .frame(width: 40, height: 40)
-            }
-            .buttonStyle(.liquidGlassCircle)
+        Button {
+            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+            action()
+        } label: {
+            Image(systemName: icon)
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundColor(colors.onSurface)
+                .frame(width: 40, height: 40)
+                .background(
+                    Circle()
+                        .fill(colors.surfaceContainerHigh)
+                        .overlay(
+                            Circle()
+                                .stroke(colors.outlineVariant.opacity(0.35), lineWidth: 0.8)
+                        )
+                )
         }
+        .buttonStyle(M3BounceButtonStyle())
     }
     
     private func cycleThemeMode() {

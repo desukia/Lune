@@ -28,18 +28,7 @@ public struct SettingsView: View {
     public var body: some View {
         NavigationStack {
             Form {
-                // MARK: - Design System
-                Section(
-                    header: Text("Design System").font(.custom("Quicksand-Bold", size: 12)),
-                    footer: Text("Switch seamlessly between Android's Material You (Material 3 Expressive) and iOS Liquid Glass. You can revert or switch anytime.").font(.custom("Quicksand-Regular", size: 12))
-                ) {
-                    Picker("UI Design Style", selection: $settings.uiStyle) {
-                        ForEach(AppUIStyle.allCases) { style in
-                            Text(style.displayName).tag(style)
-                        }
-                    }
-                }
-                
+
                 // MARK: - Theme & Appearance
                 Section(header: Text("Theme & Colors").font(.custom("Quicksand-Bold", size: 12))) {
                     Picker("Theme Mode", selection: $settings.themeMode) {
