@@ -9,6 +9,7 @@
 //  - waveThickness = 4.dp
 //  - trackThickness = 4.dp
 //  - incremental = false (uniform wave across active track)
+//  - Continuous frame-driven TimelineView animation (never freezes, always in sync)
 //  - Rotating 14x14 squircle thumb (360 deg in 2.0s when playing)
 //
 
@@ -22,8 +23,6 @@ public struct M3WavyProgressIndicator: View {
     let trackColor: Color
     let onSeek: (Double) -> Void
     
-    @State private var phase: Double = 0.0
-    @State private var thumbRotation: Double = 0.0
     @State private var isDragging: Bool = false
     @State private var dragProgress: Double = 0.0
     
@@ -53,92 +52,79 @@ public struct M3WavyProgressIndicator: View {
     }
     
     public var body: some View {
-        GeometryReader { geometry in
-            let width = geometry.size.width
-            let height = geometry.size.height
-            let current = isDragging ? dragProgress : progress
-            let activeWidth = max(0, min(width, width * CGFloat(current)))
-            let centerY = height / 2
-            let effectiveAmplitude: CGFloat = (isPlaying && isWavy && !isDragging) ? waveAmplitude : 0.0
+        TimelineView(.animation(paused: !isPlaying || !isWavy || isDragging)) { timeline in
+            let time = timeline.date.timeIntervalSinceReferenceDate
+            let phase = isPlaying ? (time.truncatingRemainder(dividingBy: cycleDuration) / cycleDuration) * 2 * .pi : 0.0
+            let thumbRotation = isPlaying ? (time.truncatingRemainder(dividingBy: 2.0) / 2.0) * 360.0 : 0.0
             
-            ZStack(alignment: .leading) {
-                // Inactive Background Track (Full Width, trackThickness = 4.dp)
-                Capsule()
-                    .fill(trackColor)
-                    .frame(height: trackThickness)
-                    .position(x: width / 2, y: centerY)
+            GeometryReader { geometry in
+                let width = geometry.size.width
+                let height = geometry.size.height
+                let current = isDragging ? dragProgress : progress
+                let activeWidth = max(0, min(width, width * CGFloat(current)))
+                let centerY = height / 2
+                let effectiveAmplitude: CGFloat = (isPlaying && isWavy && !isDragging) ? waveAmplitude : 0.0
                 
-                // Active Wave / Track (waveThickness = 4.dp, incremental = false)
-                if activeWidth > 0 {
-                    if effectiveAmplitude > 0.05 && activeWidth > 12 {
-                        M3WavySineShape(
-                            phase: phase,
-                            amplitude: effectiveAmplitude,
-                            wavelength: waveLength,
-                            endX: activeWidth,
-                            centerY: centerY
-                        )
-                        .stroke(
-                            primaryColor,
-                            style: StrokeStyle(lineWidth: waveThickness, lineCap: .round, lineJoin: .round)
-                        )
-                    } else {
-                        Capsule()
-                            .fill(primaryColor)
-                            .frame(width: max(activeWidth, waveThickness), height: waveThickness)
-                            .position(x: max(activeWidth, waveThickness) / 2, y: centerY)
-                    }
-                }
-                
-                // Scrubber Thumb: 1:1 Android Lune Parity (14x14 squircle rotating 360 deg when playing)
-                RoundedRectangle(cornerRadius: isDragging ? 6 : 5, style: .continuous)
-                    .fill(primaryColor)
-                    .frame(width: isDragging ? 16 : 14, height: isDragging ? 16 : 14)
-                    .rotationEffect(.degrees(isPlaying ? thumbRotation : 0))
-                    .shadow(color: Color.black.opacity(0.35), radius: isDragging ? 3 : 1.5, x: 0, y: 1)
-                    .position(x: activeWidth, y: centerY)
-                    .scaleEffect(isDragging ? 1.20 : 1.0)
-                    .animation(.spring(response: 0.25, dampingFraction: 0.65), value: isDragging)
-            }
-            .contentShape(Rectangle())
-            .gesture(
-                DragGesture(minimumDistance: 0)
-                    .onChanged { value in
-                        if !isDragging {
-                            isDragging = true
-                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                ZStack(alignment: .leading) {
+                    // Inactive Background Track (Full Width, trackThickness = 4.dp)
+                    Capsule()
+                        .fill(trackColor)
+                        .frame(height: trackThickness)
+                        .position(x: width / 2, y: centerY)
+                    
+                    // Active Wave / Track (waveThickness = 4.dp, incremental = false)
+                    if activeWidth > 0 {
+                        if effectiveAmplitude > 0.05 && activeWidth > 12 {
+                            M3WavySineShape(
+                                phase: phase,
+                                amplitude: effectiveAmplitude,
+                                wavelength: waveLength,
+                                endX: activeWidth,
+                                centerY: centerY
+                            )
+                            .stroke(
+                                primaryColor,
+                                style: StrokeStyle(lineWidth: waveThickness, lineCap: .round, lineJoin: .round)
+                            )
+                        } else {
+                            Capsule()
+                                .fill(primaryColor)
+                                .frame(width: max(activeWidth, waveThickness), height: waveThickness)
+                                .position(x: max(activeWidth, waveThickness) / 2, y: centerY)
                         }
-                        let newProgress = max(0.0, min(1.0, Double(value.location.x / width)))
-                        dragProgress = newProgress
                     }
-                    .onEnded { value in
-                        let finalProgress = max(0.0, min(1.0, Double(value.location.x / width)))
-                        isDragging = false
-                        onSeek(finalProgress)
-                        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-                    }
-            )
+                    
+                    // Scrubber Thumb: 1:1 Android Lune Parity (14x14 squircle rotating 360 deg when playing)
+                    RoundedRectangle(cornerRadius: isDragging ? 6 : 5, style: .continuous)
+                        .fill(primaryColor)
+                        .frame(width: isDragging ? 16 : 14, height: isDragging ? 16 : 14)
+                        .rotationEffect(.degrees(isPlaying ? thumbRotation : 0))
+                        .shadow(color: Color.black.opacity(0.35), radius: isDragging ? 3 : 1.5, x: 0, y: 1)
+                        .position(x: activeWidth, y: centerY)
+                        .scaleEffect(isDragging ? 1.20 : 1.0)
+                        .animation(.spring(response: 0.25, dampingFraction: 0.65), value: isDragging)
+                }
+                .contentShape(Rectangle())
+                .gesture(
+                    DragGesture(minimumDistance: 0)
+                        .onChanged { value in
+                            if !isDragging {
+                                isDragging = true
+                                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                            }
+                            let newProgress = max(0.0, min(1.0, Double(value.location.x / width)))
+                            dragProgress = newProgress
+                        }
+                        .onEnded { value in
+                            let finalProgress = max(0.0, min(1.0, Double(value.location.x / width)))
+                            isDragging = false
+                            onSeek(finalProgress)
+                            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                        }
+                )
+            }
         }
         .frame(height: 32)
-        .onAppear {
-            if isPlaying && isWavy {
-                startWaveAnimation()
-            }
-        }
-        .onChange(of: isPlaying) { _, playing in
-            if playing && isWavy {
-                startWaveAnimation()
-            }
-        }
-    }
-    
-    private func startWaveAnimation() {
-        withAnimation(.linear(duration: cycleDuration).repeatForever(autoreverses: false)) {
-            phase = .pi * 2
-        }
-        withAnimation(.linear(duration: 2.0).repeatForever(autoreverses: false)) {
-            thumbRotation = 360
-        }
     }
 }
 

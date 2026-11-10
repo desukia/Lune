@@ -36,11 +36,8 @@ public struct AboutView: View {
             VStack(spacing: 24) {
                 // MARK: - Logo Section
                 VStack(spacing: 12) {
-                    Image("AppLogo")
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: 150, height: 150)
-                        .shadow(color: colors.primary.opacity(0.35), radius: 24, x: 0, y: 8)
+                    LuneAnimatedLogo(isPlaying: true, tintColor: colors.onSurface, size: 140)
+                        .shadow(color: colors.onSurface.opacity(0.18), radius: 24, x: 0, y: 8)
                         .padding(.top, 16)
                     
                     // Version

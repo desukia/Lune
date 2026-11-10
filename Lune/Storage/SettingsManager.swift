@@ -77,6 +77,6 @@ public final class SettingsManager: ObservableObject {
         case .light: isDark = false
         case .dark: isDark = true
         }
-        return LuneTheme.resolveColors(palette: customPalette, isDark: isDark, amoled: amoledPitchBlack)
+        return LuneTheme.resolveColors(palette: .monochrome, isDark: isDark, amoled: false)
     }
 }

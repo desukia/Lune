@@ -29,39 +29,12 @@ public struct SettingsView: View {
         NavigationStack {
             Form {
 
-                // MARK: - Theme & Appearance
-                Section(header: Text("Theme & Colors").font(.custom("Quicksand-Bold", size: 12))) {
+                // MARK: - Theme Mode
+                Section(header: Text("Theme").font(.custom("Quicksand-Bold", size: 12))) {
                     Picker("Theme Mode", selection: $settings.themeMode) {
                         ForEach(AppThemeMode.allCases) { mode in
                             Text(mode.displayName).tag(mode)
                         }
-                    }
-                    
-                    Picker("Color Palette", selection: $settings.customPalette) {
-                        ForEach(ColorPaletteOption.allCases) { opt in
-                            Text(opt.name).tag(opt)
-                        }
-                    }
-                    
-                    Toggle("AMOLED Pitch Black", isOn: $settings.amoledPitchBlack)
-                }
-                
-                // MARK: - Typography
-                Section(header: Text("Typography").font(.custom("Quicksand-Bold", size: 12))) {
-                    Picker("Font Family", selection: $settings.fontFamily) {
-                        ForEach(AppFontFamily.allCases) { family in
-                            Text(family.displayName).tag(family)
-                        }
-                    }
-                    
-                    VStack(alignment: .leading, spacing: 6) {
-                        HStack {
-                            Text("Font Scale")
-                            Spacer()
-                            Text(String(format: "%.1fx", settings.fontScale))
-                                .foregroundColor(.secondary)
-                        }
-                        Slider(value: $settings.fontScale, in: 0.7...1.5, step: 0.05)
                     }
                 }
                 
