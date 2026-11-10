@@ -326,7 +326,7 @@ public struct ResumeScreenView: View {
                         ScallopPlayPauseButtonWithProgress(
                             isPlaying: player.isPlaying && player.currentSong?.id == song.id,
                             progress: player.playbackProgress,
-                            primaryColor: colors.primary,
+                            primaryColor: .white,
                             size: 48
                         ) {
                             if player.currentSong?.id == song.id {
@@ -408,14 +408,14 @@ public struct ResumeScreenView: View {
                                     
                                     Spacer()
                                     
-                                    // Circular Play Button
+                                    // Circular Play Button (1:1 Android: semi-transparent circle with white icon)
                                     Circle()
-                                        .fill(colors.primary)
+                                        .fill(Color.black.opacity(0.45))
                                         .frame(width: 44, height: 44)
                                         .overlay(
                                             Image(systemName: "play.fill")
                                                 .font(.system(size: 18, weight: .bold))
-                                                .foregroundColor(colors.onPrimary)
+                                                .foregroundColor(.white)
                                                 .offset(x: 1.5)
                                         )
                                         .shadow(color: Color.black.opacity(0.35), radius: 6, x: 0, y: 3)

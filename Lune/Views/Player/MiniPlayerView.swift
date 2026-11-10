@@ -92,27 +92,27 @@ public struct MiniPlayerView: View {
                             Circle()
                                 .stroke(Color.white.opacity(0.24), lineWidth: 3.5)
                             
-                            // Active progress arc
+                            // Active progress arc (Android Lune: clean white on blur)
                             Circle()
                                 .trim(from: 0, to: CGFloat(player.playbackProgress))
-                                .stroke(colors.primary, style: StrokeStyle(lineWidth: 3.5, lineCap: .round))
+                                .stroke(Color.white, style: StrokeStyle(lineWidth: 3.5, lineCap: .round))
                                 .rotationEffect(.degrees(-90))
                                 .animation(.linear(duration: 0.25), value: player.playbackProgress)
                             
-                            // Center Icons (Authentic Android Lune: NO solid circle background, pure transparent center)
+                            // Center Icons (Authentic Android Lune: clean white, NO solid circle background)
                             if player.isPlaying {
                                 HStack(spacing: 4) {
                                     Capsule()
-                                        .fill(colors.primary)
+                                        .fill(Color.white)
                                         .frame(width: 4, height: 16)
                                     Capsule()
-                                        .fill(colors.primary)
+                                        .fill(Color.white)
                                         .frame(width: 4, height: 16)
                                 }
                             } else {
                                 Image(systemName: "play.fill")
                                     .font(.system(size: 20, weight: .bold))
-                                    .foregroundColor(colors.primary)
+                                    .foregroundColor(Color.white)
                                     .offset(x: 1.5)
                             }
                         }

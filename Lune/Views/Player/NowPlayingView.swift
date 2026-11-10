@@ -405,7 +405,7 @@ public struct NowPlayingView: View {
                     RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
                         .stroke(colors.outlineVariant.opacity(0.30), lineWidth: 1)
                 )
-                .shadow(color: colors.primary.opacity(0.28), radius: 24, x: 0, y: 10)
+                .shadow(color: Color.black.opacity(0.40), radius: 24, x: 0, y: 10)
             }
         }
         .frame(width: coverSize, height: coverSize)
@@ -491,7 +491,7 @@ public struct NowPlayingView: View {
                         .overlay(
                             Image(systemName: "music.note.list")
                                 .font(.system(size: 20, weight: .semibold))
-                                .foregroundColor(activeMode == .lyrics ? colors.primary : Color.white.opacity(0.85))
+                                .foregroundColor(activeMode == .lyrics ? .white : Color.white.opacity(0.85))
                         )
                 }
                 .buttonStyle(M3BounceButtonStyle())
@@ -529,7 +529,7 @@ public struct NowPlayingView: View {
                 ),
                 isPlaying: player.isPlaying,
                 isWavy: settings.progressBarWave,
-                primaryColor: colors.primary,
+                primaryColor: .white,
                 trackColor: Color.white.opacity(0.24)
             ) { newProgress in
                 player.seek(to: newProgress * player.duration)
@@ -594,24 +594,23 @@ public struct NowPlayingView: View {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1.3, execute: item)
             } label: {
                 RoundedRectangle(cornerRadius: 30, style: .continuous)
-                    .fill(colors.primary)
+                    .fill(Color.white)
                     .frame(width: showPlayStateLabel ? 156 : 96, height: 68)
                     .overlay(
                         HStack(spacing: 8) {
                             Image(systemName: player.isPlaying ? "pause.fill" : "play.fill")
                                 .font(.system(size: 32, weight: .bold))
-                                .foregroundColor(Color(hex: 0x141316))
+                                .foregroundColor(.black)
                                 .offset(x: player.isPlaying ? 0 : 2)
                             
                             if showPlayStateLabel {
                                 Text(player.isPlaying ? "Play" : "Pause")
                                     .font(.custom("Quicksand-Bold", size: 16))
-                                    .foregroundColor(colors.onPrimary)
+                                    .foregroundColor(.black)
                                     .transition(.opacity.combined(with: .scale(scale: 0.85)))
                             }
                         }
                     )
-                    .shadow(color: colors.primary.opacity(0.35), radius: 10, x: 0, y: 4)
             }
             .buttonStyle(M3BounceButtonStyle(scale: 0.92))
             
@@ -626,7 +625,7 @@ public struct NowPlayingView: View {
                     .overlay(
                         Image(systemName: "forward.end.fill")
                             .font(.system(size: 28, weight: .bold))
-                            .foregroundColor(colors.primary)
+                            .foregroundColor(.white)
                     )
             }
             .buttonStyle(M3BounceButtonStyle())
