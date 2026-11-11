@@ -26,6 +26,7 @@ public struct MainView: View {
     @State private var showFileImporter: Bool = false
     
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.scenePhase) private var scenePhase
     
     public init() {}
     
@@ -130,6 +131,13 @@ public struct MainView: View {
             .toolbar(.hidden, for: .navigationBar)
             .task {
                 await library.scanLibrary()
+            }
+            .onChange(of: scenePhase) { _, newPhase in
+                if newPhase == .active {
+                    Task {
+                        await library.scanLibrary()
+                    }
+                }
             }
             .sheet(isPresented: $showSectionMenu) {
                 SectionMenuSheet(

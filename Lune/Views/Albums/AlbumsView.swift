@@ -153,6 +153,8 @@ public struct AlbumDetailView: View {
     @ObservedObject var library: MusicLibraryManager
     @ObservedObject var player: AudioPlayerManager
     @State private var showPlaylistSheetForSong: Song? = nil
+    @State private var songToDelete: Song? = nil
+    @State private var showDeleteConfirmation: Bool = false
     
     public init(album: Album, library: MusicLibraryManager, player: AudioPlayerManager) {
         self.album = album
@@ -214,7 +216,11 @@ public struct AlbumDetailView: View {
                             isPlaying: player.isPlaying,
                             onPlay: { player.playQueue(albumSongs, startingAt: index) },
                             onToggleFavorite: { library.toggleFavorite(for: song) },
-                            onAddToPlaylist: { showPlaylistSheetForSong = song }
+                            onAddToPlaylist: { showPlaylistSheetForSong = song },
+                            onDelete: {
+                                songToDelete = song
+                                showDeleteConfirmation = true
+                            }
                         )
                     }
                 }
@@ -226,6 +232,16 @@ public struct AlbumDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .sheet(item: $showPlaylistSheetForSong) { song in
             AddToPlaylistSheet(song: song)
+        }
+        .alert("Delete from device".localized, isPresented: $showDeleteConfirmation, presenting: songToDelete) { song in
+            Button("Delete".localized, role: .destructive) {
+                withAnimation {
+                    library.deleteSong(song)
+                }
+            }
+            Button("Cancel".localized, role: .cancel) {}
+        } message: { song in
+            Text("Are you sure? This song will be permanently deleted from your device.".localized)
         }
     }
     

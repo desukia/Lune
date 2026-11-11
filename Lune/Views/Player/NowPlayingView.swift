@@ -39,6 +39,8 @@ public struct NowPlayingView: View {
     @State private var showEqualizer: Bool = false
     @State private var showSleepTimer: Bool = false
     @State private var showAddToPlaylist: Bool = false
+    @State private var songToDelete: Song? = nil
+    @State private var showDeleteConfirmation: Bool = false
     
     // Scrubber drag state
     @State private var isDraggingScrubber: Bool = false
@@ -113,6 +115,17 @@ public struct NowPlayingView: View {
                 Button("Turn Off Timer".localized, role: .destructive) { player.cancelSleepTimer() }
             }
             Button("Cancel".localized, role: .cancel) {}
+        }
+        .alert("Delete from device".localized, isPresented: $showDeleteConfirmation, presenting: songToDelete) { song in
+            Button("Delete".localized, role: .destructive) {
+                library.deleteSong(song)
+                if player.queue.isEmpty {
+                    dismiss()
+                }
+            }
+            Button("Cancel".localized, role: .cancel) {}
+        } message: { song in
+            Text("Are you sure? This song will be permanently deleted from your device.".localized)
         }
         .onAppear {
             if let song = player.currentSong {
@@ -1147,6 +1160,15 @@ public struct NowPlayingView: View {
                         if let br = song.bitrate, br > 0 {
                             Text("Bitrate: %d kbps".localized(br))
                         }
+                    }
+                    
+                    Divider()
+                    
+                    Button(role: .destructive) {
+                        songToDelete = song
+                        showDeleteConfirmation = true
+                    } label: {
+                        Label("Delete from device".localized, systemImage: "trash")
                     }
                 }
             } label: {

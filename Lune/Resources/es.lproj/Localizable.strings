@@ -1103,3 +1103,6 @@
 
 "PLAIN" = "ESTÁTICA";
 "Add Manually" = "Añadir Manualmente";
+"Remove from Playlist" = "Eliminar de la lista";
+"Play Now" = "Reproducir ahora";
+"Play Next" = "Reproducir siguiente";

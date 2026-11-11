@@ -45,6 +45,10 @@ public final class ArtworkCache: @unchecked Sendable {
         return nil
     }
     
+    public func remove(for songId: Int64) {
+        cache.removeObject(forKey: NSString(string: "song_\(songId)"))
+    }
+    
     public func clear() {
         cache.removeAllObjects()
     }

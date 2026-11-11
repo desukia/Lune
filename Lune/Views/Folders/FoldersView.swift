@@ -34,6 +34,9 @@ public struct FoldersView: View {
     // Directory navigation stack
     @State private var currentPath: [String] = []
     @State private var showFileImporter: Bool = false
+    @State private var songToDelete: Song? = nil
+    @State private var showDeleteConfirmation: Bool = false
+    @State private var showPlaylistSheetForSong: Song? = nil
     
     public init(library: MusicLibraryManager, player: AudioPlayerManager) {
         self.library = library
@@ -89,6 +92,19 @@ public struct FoldersView: View {
                     await library.importAudioFiles(from: urls)
                 }
             }
+        }
+        .sheet(item: $showPlaylistSheetForSong) { song in
+            AddToPlaylistSheet(song: song)
+        }
+        .alert("Delete from device".localized, isPresented: $showDeleteConfirmation, presenting: songToDelete) { song in
+            Button("Delete".localized, role: .destructive) {
+                withAnimation {
+                    library.deleteSong(song)
+                }
+            }
+            Button("Cancel".localized, role: .cancel) {}
+        } message: { song in
+            Text("Are you sure? This song will be permanently deleted from your device.".localized)
         }
     }
     
@@ -354,6 +370,40 @@ public struct FoldersView: View {
                         .contentShape(Rectangle())
                     }
                     .buttonStyle(M3BounceButtonStyle())
+                    .contextMenu {
+                        Button {
+                            player.playQueue(songsInFolder, startingAt: index)
+                        } label: {
+                            Label("Play Now".localized, systemImage: "play.fill")
+                        }
+                        
+                        Button {
+                            player.queue.insert(song, at: player.currentIndex + 1)
+                        } label: {
+                            Label("Play Next".localized, systemImage: "text.line.first.and.arrowtriangle.forward")
+                        }
+                        
+                        Button {
+                            library.toggleFavorite(for: song)
+                        } label: {
+                            Label(song.isFavorite ? "Remove from Favorites".localized : "Add to Favorites".localized, systemImage: song.isFavorite ? "heart.slash" : "heart")
+                        }
+                        
+                        Button {
+                            showPlaylistSheetForSong = song
+                        } label: {
+                            Label("Add to Playlist".localized, systemImage: "plus.circle")
+                        }
+                        
+                        Divider()
+                        
+                        Button(role: .destructive) {
+                            songToDelete = song
+                            showDeleteConfirmation = true
+                        } label: {
+                            Label("Delete from device".localized, systemImage: "trash")
+                        }
+                    }
                 }
             }
         }

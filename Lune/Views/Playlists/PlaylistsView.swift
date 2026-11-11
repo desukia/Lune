@@ -225,6 +225,8 @@ public struct PlaylistDetailView: View {
     @Environment(\.dismiss) private var dismiss
     
     @State private var showAddSongsSheet: Bool = false
+    @State private var songToDelete: Song? = nil
+    @State private var showDeleteConfirmation: Bool = false
     
     public init(playlist: Playlist, onUpdate: @escaping () -> Void = {}) {
         self._playlist = State(initialValue: playlist)
@@ -317,7 +319,15 @@ public struct PlaylistDetailView: View {
                                     song: song,
                                     isCurrentSong: player.currentSong?.id == song.id,
                                     isPlaying: player.isPlaying,
-                                    onPlay: { player.playQueue(playlistSongs, startingAt: index) }
+                                    onPlay: { player.playQueue(playlistSongs, startingAt: index) },
+                                    onToggleFavorite: { library.toggleFavorite(for: song) },
+                                    onRemoveFromPlaylist: {
+                                        removeSong(song.id)
+                                    },
+                                    onDelete: {
+                                        songToDelete = song
+                                        showDeleteConfirmation = true
+                                    }
                                 )
                                 
                                 Button {
@@ -370,6 +380,17 @@ public struct PlaylistDetailView: View {
             PlaylistSongPickerView(playlist: playlist, onUpdate: {
                 refreshPlaylist()
             })
+        }
+        .alert("Delete from device".localized, isPresented: $showDeleteConfirmation, presenting: songToDelete) { song in
+            Button("Delete".localized, role: .destructive) {
+                withAnimation {
+                    library.deleteSong(song)
+                    refreshPlaylist()
+                }
+            }
+            Button("Cancel".localized, role: .cancel) {}
+        } message: { song in
+            Text("Are you sure? This song will be permanently deleted from your device.".localized)
         }
     }
     

@@ -1103,3 +1103,6 @@
 
 "PLAIN" = "STATIQUE";
 "Add Manually" = "Ajouter Manuellement";
+"Remove from Playlist" = "Retirer de la playlist";
+"Play Now" = "Lire maintenant";
+"Play Next" = "Lire ensuite";

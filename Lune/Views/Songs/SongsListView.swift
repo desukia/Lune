@@ -34,6 +34,8 @@ public struct SongsListView: View {
     @State private var sortOption: SongSortOption = .title
     @State private var showFileImporter: Bool = false
     @State private var showPlaylistSheetForSong: Song? = nil
+    @State private var songToDelete: Song? = nil
+    @State private var showDeleteConfirmation: Bool = false
     @State private var isGridLayout: Bool = false
     @Environment(\.colorScheme) private var colorScheme
     
@@ -131,6 +133,10 @@ public struct SongsListView: View {
                                 },
                                 onAddToPlaylist: {
                                     showPlaylistSheetForSong = song
+                                },
+                                onDelete: {
+                                    songToDelete = song
+                                    showDeleteConfirmation = true
                                 }
                             )
                         }
@@ -173,6 +179,16 @@ public struct SongsListView: View {
         }
         .sheet(item: $showPlaylistSheetForSong) { song in
             AddToPlaylistSheet(song: song)
+        }
+        .alert("Delete from device".localized, isPresented: $showDeleteConfirmation, presenting: songToDelete) { song in
+            Button("Delete".localized, role: .destructive) {
+                withAnimation {
+                    library.deleteSong(song)
+                }
+            }
+            Button("Cancel".localized, role: .cancel) {}
+        } message: { song in
+            Text("Are you sure? This song will be permanently deleted from your device.".localized)
         }
     }
     

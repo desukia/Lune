@@ -77,7 +77,7 @@ public final class MusicLibraryManager: ObservableObject {
     
     private func scanLocalDirectory(_ dir: URL) async -> [Song] {
         var songs: [Song] = []
-        let supportedExtensions = ["mp3", "m4a", "flac", "wav", "aac", "alac", "aif", "aiff"]
+        let supportedExtensions = ["mp3", "m4a", "flac", "wav", "aac", "alac", "aif", "aiff", "ogg", "opus"]
         
         let enumerator = FileManager.default.enumerator(
             at: dir,
@@ -107,6 +107,9 @@ public final class MusicLibraryManager: ObservableObject {
             let artist = item.artist ?? "Unknown Artist"
             let album = item.albumTitle ?? "Unknown Album"
             let id = (item.persistentID != 0) ? Int64(bitPattern: item.persistentID) : LuneIdGenerator.songId(url: url, title: title, artist: artist)
+            if DataStore.shared.isSongHidden(id: id) {
+                continue
+            }
             let albumId = (item.albumPersistentID != 0) ? Int64(bitPattern: item.albumPersistentID) : LuneIdGenerator.albumId(album: album, artist: artist)
             let genre = item.genre
             let duration = item.playbackDuration
@@ -189,6 +192,9 @@ public final class MusicLibraryManager: ObservableObject {
         let format = url.pathExtension.uppercased()
         let isHiFi = isHiRes || format == "FLAC" || format == "ALAC" || format == "WAV"
         let songId = LuneIdGenerator.songId(url: url, title: title, artist: artist)
+        if DataStore.shared.isSongHidden(id: songId) {
+            return nil
+        }
         let albumId = LuneIdGenerator.albumId(album: album, artist: artist)
         
         return Song(
@@ -308,5 +314,46 @@ public final class MusicLibraryManager: ObservableObject {
         if AudioPlayerManager.shared.currentSong?.id == songId {
             AudioPlayerManager.shared.currentSong?.lyrics = lyrics
         }
+    }
+    
+    // MARK: - Song Deletion
+    
+    public func deleteSong(_ song: Song) {
+        // 1. Mark hidden in DataStore so it is permanently suppressed from future scans
+        DataStore.shared.hideSong(id: song.id)
+        
+        // 2. Physical file deletion if it's a file on device
+        if song.url.isFileURL {
+            try? FileManager.default.removeItem(at: song.url)
+        }
+        
+        // 3. Remove artwork from cache
+        ArtworkCache.shared.remove(for: song.id)
+        
+        // 4. Remove from playlists and favorites
+        DataStore.shared.removeSongFromAllPlaylists(songId: song.id)
+        DataStore.shared.setFavorite(songId: song.id, isFavorite: false)
+        
+        // 5. If this song is currently playing, advance to next song or stop
+        let player = AudioPlayerManager.shared
+        if player.currentSong?.id == song.id {
+            if player.queue.count > 1 {
+                player.nextSong()
+            } else {
+                player.stop()
+                player.currentSong = nil
+            }
+        }
+        
+        // 6. Remove from current playback queue
+        player.queue.removeAll { $0.id == song.id }
+        
+        // 7. Remove from library collections
+        self.allSongs.removeAll { $0.id == song.id }
+        self.recentlyAddedSongs.removeAll { $0.id == song.id }
+        self.rebuildCollections(from: self.allSongs)
+        
+        // 8. Refresh AI mixes
+        LuneAiEngine.shared.refreshMixes(allSongs: self.allSongs)
     }
 }

@@ -59,6 +59,8 @@ public struct SongRowView: View {
     let onPlay: () -> Void
     let onToggleFavorite: () -> Void
     let onAddToPlaylist: () -> Void
+    let onRemoveFromPlaylist: (() -> Void)?
+    let onDelete: (() -> Void)?
     
     @ObservedObject private var settings: SettingsManager
     @Environment(\.colorScheme) private var colorScheme
@@ -71,7 +73,9 @@ public struct SongRowView: View {
         primaryColor: Color = Color(hex: 0xD0BCFF),
         onPlay: @escaping () -> Void,
         onToggleFavorite: @escaping () -> Void = {},
-        onAddToPlaylist: @escaping () -> Void = {}
+        onAddToPlaylist: @escaping () -> Void = {},
+        onRemoveFromPlaylist: (() -> Void)? = nil,
+        onDelete: (() -> Void)? = nil
     ) {
         self.song = song
         self.isCurrentSong = isCurrentSong
@@ -81,6 +85,8 @@ public struct SongRowView: View {
         self.onPlay = onPlay
         self.onToggleFavorite = onToggleFavorite
         self.onAddToPlaylist = onAddToPlaylist
+        self.onRemoveFromPlaylist = onRemoveFromPlaylist
+        self.onDelete = onDelete
         self.settings = .shared
     }
     
@@ -160,25 +166,42 @@ public struct SongRowView: View {
                         Button {
                             onPlay()
                         } label: {
-                            Label("Play Now", systemImage: "play.fill")
+                            Label("Play Now".localized, systemImage: "play.fill")
                         }
                         
                         Button {
                             AudioPlayerManager.shared.queue.insert(song, at: AudioPlayerManager.shared.currentIndex + 1)
                         } label: {
-                            Label("Play Next", systemImage: "text.line.first.and.arrowtriangle.forward")
+                            Label("Play Next".localized, systemImage: "text.line.first.and.arrowtriangle.forward")
                         }
                         
                         Button {
                             onToggleFavorite()
                         } label: {
-                            Label(song.isFavorite ? "Remove from Favorites" : "Add to Favorites", systemImage: song.isFavorite ? "heart.slash" : "heart")
+                            Label(song.isFavorite ? "Remove from Favorites".localized : "Add to Favorites".localized, systemImage: song.isFavorite ? "heart.slash" : "heart")
                         }
                         
                         Button {
                             onAddToPlaylist()
                         } label: {
-                            Label("Add to Playlist", systemImage: "plus.circle")
+                            Label("Add to Playlist".localized, systemImage: "plus.circle")
+                        }
+                        
+                        if let onRemoveFromPlaylist = onRemoveFromPlaylist {
+                            Button(role: .destructive) {
+                                onRemoveFromPlaylist()
+                            } label: {
+                                Label("Remove from Playlist".localized, systemImage: "minus.circle")
+                            }
+                        }
+                        
+                        if let onDelete = onDelete {
+                            Divider()
+                            Button(role: .destructive) {
+                                onDelete()
+                            } label: {
+                                Label("Delete from device".localized, systemImage: "trash")
+                            }
                         }
                     } label: {
                         Image(systemName: "ellipsis")
@@ -230,25 +253,42 @@ public struct SongRowView: View {
             Button {
                 onPlay()
             } label: {
-                Label("Play Now", systemImage: "play.fill")
+                Label("Play Now".localized, systemImage: "play.fill")
             }
             
             Button {
                 AudioPlayerManager.shared.queue.insert(song, at: AudioPlayerManager.shared.currentIndex + 1)
             } label: {
-                Label("Play Next", systemImage: "text.line.first.and.arrowtriangle.forward")
+                Label("Play Next".localized, systemImage: "text.line.first.and.arrowtriangle.forward")
             }
             
             Button {
                 onToggleFavorite()
             } label: {
-                Label(song.isFavorite ? "Remove from Favorites" : "Add to Favorites", systemImage: song.isFavorite ? "heart.slash" : "heart")
+                Label(song.isFavorite ? "Remove from Favorites".localized : "Add to Favorites".localized, systemImage: song.isFavorite ? "heart.slash" : "heart")
             }
             
             Button {
                 onAddToPlaylist()
             } label: {
-                Label("Add to Playlist", systemImage: "plus.circle")
+                Label("Add to Playlist".localized, systemImage: "plus.circle")
+            }
+            
+            if let onRemoveFromPlaylist = onRemoveFromPlaylist {
+                Button(role: .destructive) {
+                    onRemoveFromPlaylist()
+                } label: {
+                    Label("Remove from Playlist".localized, systemImage: "minus.circle")
+                }
+            }
+            
+            if let onDelete = onDelete {
+                Divider()
+                Button(role: .destructive) {
+                    onDelete()
+                } label: {
+                    Label("Delete from device".localized, systemImage: "trash")
+                }
             }
         }
     }

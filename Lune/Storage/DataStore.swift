@@ -15,10 +15,12 @@ public final class DataStore: @unchecked Sendable {
     private let ioQueue = DispatchQueue(label: "com.lune.datastore.io", qos: .utility)
     private var playlists: [Playlist] = []
     private var favorites: Set<Int64> = []
+    private var hiddenSongIds: Set<Int64> = []
     private var stats: [String: PlaybackStats] = [:]
     
     private let playlistsFileURL: URL
     private let favoritesFileURL: URL
+    private let hiddenFileURL: URL
     private let statsFileURL: URL
     
     private init() {
@@ -27,6 +29,7 @@ public final class DataStore: @unchecked Sendable {
         
         self.playlistsFileURL = appSupport.appendingPathComponent("playlists.json")
         self.favoritesFileURL = appSupport.appendingPathComponent("favorites.json")
+        self.hiddenFileURL = appSupport.appendingPathComponent("hidden_songs.json")
         self.statsFileURL = appSupport.appendingPathComponent("playback_stats.json")
         
         load()
@@ -44,6 +47,11 @@ public final class DataStore: @unchecked Sendable {
         if let data = try? Data(contentsOf: favoritesFileURL),
            let set = try? JSONDecoder().decode(Set<Int64>.self, from: data) {
             self.favorites = set
+        }
+        
+        if let data = try? Data(contentsOf: hiddenFileURL),
+           let set = try? JSONDecoder().decode(Set<Int64>.self, from: data) {
+            self.hiddenSongIds = set
         }
         
         if let data = try? Data(contentsOf: statsFileURL),
@@ -96,6 +104,15 @@ public final class DataStore: @unchecked Sendable {
         savePlaylists()
     }
     
+    public func removeSongFromAllPlaylists(songId: Int64) {
+        lock.lock()
+        for i in playlists.indices {
+            playlists[i].songIds.removeAll { $0 == songId }
+        }
+        lock.unlock()
+        savePlaylists()
+    }
+    
     public func reorderPlaylist(playlistId: Int64, newSongIds: [Int64]) {
         lock.lock()
         if let idx = playlists.firstIndex(where: { $0.id == playlistId }) {
@@ -140,6 +157,42 @@ public final class DataStore: @unchecked Sendable {
                 let dir = favoritesFileURL.deletingLastPathComponent()
                 try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
                 try? encoded.write(to: favoritesFileURL, options: .atomic)
+            }
+        }
+    }
+    
+    // MARK: - Hidden Songs (Deleted System or Blacklisted Songs)
+    
+    public func isSongHidden(id: Int64) -> Bool {
+        lock.lock()
+        defer { lock.unlock() }
+        return hiddenSongIds.contains(id)
+    }
+    
+    public func hideSong(id: Int64) {
+        lock.lock()
+        hiddenSongIds.insert(id)
+        let copy = hiddenSongIds
+        lock.unlock()
+        ioQueue.async { [hiddenFileURL] in
+            if let encoded = try? JSONEncoder().encode(copy) {
+                let dir = hiddenFileURL.deletingLastPathComponent()
+                try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+                try? encoded.write(to: hiddenFileURL, options: .atomic)
+            }
+        }
+    }
+    
+    public func unhideSong(id: Int64) {
+        lock.lock()
+        hiddenSongIds.remove(id)
+        let copy = hiddenSongIds
+        lock.unlock()
+        ioQueue.async { [hiddenFileURL] in
+            if let encoded = try? JSONEncoder().encode(copy) {
+                let dir = hiddenFileURL.deletingLastPathComponent()
+                try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+                try? encoded.write(to: hiddenFileURL, options: .atomic)
             }
         }
     }

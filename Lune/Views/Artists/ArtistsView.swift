@@ -147,6 +147,9 @@ public struct ArtistDetailView: View {
     let artist: Artist
     @ObservedObject var library: MusicLibraryManager
     @ObservedObject var player: AudioPlayerManager
+    @State private var songToDelete: Song? = nil
+    @State private var showDeleteConfirmation: Bool = false
+    @State private var showPlaylistSheetForSong: Song? = nil
     
     public init(artist: Artist, library: MusicLibraryManager, player: AudioPlayerManager) {
         self.artist = artist
@@ -208,7 +211,13 @@ public struct ArtistDetailView: View {
                             song: song,
                             isCurrentSong: player.currentSong?.id == song.id,
                             isPlaying: player.isPlaying,
-                            onPlay: { player.playQueue(artistSongs, startingAt: index) }
+                            onPlay: { player.playQueue(artistSongs, startingAt: index) },
+                            onToggleFavorite: { library.toggleFavorite(for: song) },
+                            onAddToPlaylist: { showPlaylistSheetForSong = song },
+                            onDelete: {
+                                songToDelete = song
+                                showDeleteConfirmation = true
+                            }
                         )
                     }
                 }
@@ -218,6 +227,19 @@ public struct ArtistDetailView: View {
         }
         .navigationTitle(artist.name)
         .navigationBarTitleDisplayMode(.inline)
+        .sheet(item: $showPlaylistSheetForSong) { song in
+            AddToPlaylistSheet(song: song)
+        }
+        .alert("Delete from device".localized, isPresented: $showDeleteConfirmation, presenting: songToDelete) { song in
+            Button("Delete".localized, role: .destructive) {
+                withAnimation {
+                    library.deleteSong(song)
+                }
+            }
+            Button("Cancel".localized, role: .cancel) {}
+        } message: { song in
+            Text("Are you sure? This song will be permanently deleted from your device.".localized)
+        }
     }
     
     private var artistSongs: [Song] {

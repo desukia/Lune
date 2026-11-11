@@ -211,6 +211,12 @@ public final class AudioPlayerManager: ObservableObject {
             LuneAiEngine.shared.onSongStarted(song)
         } catch {
             print("Failed to play song '\(song.title)': \(error)")
+            // If the audio file was removed from the device, clean up from library and advance
+            if song.url.isFileURL && !FileManager.default.fileExists(atPath: song.url.path) {
+                MusicLibraryManager.shared.deleteSong(song)
+            } else if queue.count > 1 {
+                nextSong()
+            }
         }
     }
     
