@@ -158,7 +158,7 @@ public struct LyricsView: View {
                                                     .padding(.vertical, 8)
                                                 } else {
                                                     Text(line.text)
-                                                        .font(.custom("Quicksand-Bold", size: isActive ? 28 : 22))
+                                                        .font(.system(size: isActive ? 31 : 23, weight: isActive ? .heavy : .bold, design: .rounded))
                                                         .foregroundColor(
                                                             isActive
                                                                 ? colors.onSurface

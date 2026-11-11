@@ -92,8 +92,8 @@ public struct M3WavyProgressIndicator: View {
                         }
                     }
                     
-                    // 3. Scrubber Thumb (Clean circular thumb, rock-solid on track)
-                    Circle()
+                    // 3. Scrubber Thumb (14x14 upright squircle, 1:1 Android Lune Parity)
+                    RoundedRectangle(cornerRadius: 4.5, style: .continuous)
                         .fill(primaryColor)
                         .frame(width: 14, height: 14)
                         .shadow(color: Color.black.opacity(0.35), radius: 2, x: 0, y: 1)
