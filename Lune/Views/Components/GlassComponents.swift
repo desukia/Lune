@@ -262,7 +262,7 @@ public struct LuneAnimatedLogo: View {
     public let tintColor: Color
     public var size: CGFloat
     
-    public init(isPlaying: Bool, tintColor: Color = .white, size: CGFloat = 34) {
+    public init(isPlaying: Bool, tintColor: Color = .white, size: CGFloat = 42) {
         self.isPlaying = isPlaying
         self.tintColor = tintColor
         self.size = size
@@ -292,11 +292,13 @@ public struct LuneLogoDiamondsShape: Shape {
     public init() {}
     public func path(in rect: CGRect) -> Path {
         var path = Path()
-        let sx = rect.width / 108.0
-        let sy = rect.height / 108.0
-        let ox = rect.minX
-        let oy = rect.minY
-        func pt(_ x: Double, _ y: Double) -> CGPoint { CGPoint(x: ox + CGFloat(x) * sx, y: oy + CGFloat(y) * sy) }
+        let designDiameter: CGFloat = 69.0
+        let scale = min(rect.width, rect.height) / designDiameter
+        let cx = rect.midX
+        let cy = rect.midY
+        func pt(_ x: Double, _ y: Double) -> CGPoint {
+            CGPoint(x: cx + CGFloat(x - 54.0) * scale, y: cy + CGFloat(y - 54.0) * scale)
+        }
         var curX: Double = 0
         var curY: Double = 0
         curX = 55.99; curY = 20.3
@@ -399,11 +401,13 @@ public struct LuneLogoNoteShape: Shape {
     public init() {}
     public func path(in rect: CGRect) -> Path {
         var path = Path()
-        let sx = rect.width / 108.0
-        let sy = rect.height / 108.0
-        let ox = rect.minX
-        let oy = rect.minY
-        func pt(_ x: Double, _ y: Double) -> CGPoint { CGPoint(x: ox + CGFloat(x) * sx, y: oy + CGFloat(y) * sy) }
+        let designDiameter: CGFloat = 69.0
+        let scale = min(rect.width, rect.height) / designDiameter
+        let cx = rect.midX
+        let cy = rect.midY
+        func pt(_ x: Double, _ y: Double) -> CGPoint {
+            CGPoint(x: cx + CGFloat(x - 54.0) * scale, y: cy + CGFloat(y - 54.0) * scale)
+        }
         var curX: Double = 0
         var curY: Double = 0
         curX = 50.96; curY = 35.88

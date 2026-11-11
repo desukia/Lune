@@ -153,7 +153,7 @@ public struct MainView: View {
         HStack(spacing: 12) {
             // Lune Logo + Title (Vector flower badge + Quicksand brand)
             HStack(spacing: 10) {
-                LuneAnimatedLogo(isPlaying: player.isPlaying, tintColor: colors.onSurface, size: 34)
+                LuneAnimatedLogo(isPlaying: player.isPlaying, tintColor: colors.onSurface, size: 42)
                 
                 Text("Lune")
                     .font(.custom("Quicksand-Bold", size: 28))
