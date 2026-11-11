@@ -266,50 +266,65 @@ public struct NowPlayingView: View {
                     )
             }
             
-            // 3. Main Player Layout (Elevated controls, perfectly balanced)
+            // 3. Main Player Layout (Adaptive: Full Cover vs Immersive Lyrics with Compact Dock)
             VStack(spacing: 0) {
-                // Top Cover Section
-                VStack(spacing: 12) {
-                    m3TopHeaderBar(colors: colors)
-                    
-                    if activeMode == .lyrics {
+                if activeMode == .lyrics {
+                    // Full Screen Immersive Lyrics with Sleek Compact Bottom Dock
+                    VStack(spacing: 8) {
+                        m3TopHeaderBar(colors: colors)
+                            .padding(.top, safeTop)
+                            .padding(.horizontal, 20)
+                        
                         m3LyricsContentView(colors: colors)
-                            .frame(width: screenWidth - 48, height: coverSize)
-                    } else {
-                        m3CoverArtworkView(coverSize: coverSize, colors: colors)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        
+                        m3CompactLyricsDock(colors: colors)
+                            .padding(.horizontal, 20)
+                            .padding(.bottom, safeBottom + 4)
                     }
+                    .frame(width: screenWidth, height: screenHeight)
+                    .transition(.opacity)
+                } else {
+                    // Cover Artwork Mode with Full Controls
+                    VStack(spacing: 0) {
+                        VStack(spacing: 12) {
+                            m3TopHeaderBar(colors: colors)
+                            m3CoverArtworkView(coverSize: coverSize, colors: colors)
+                        }
+                        .padding(.top, safeTop)
+                        .padding(.horizontal, 24)
+                        .frame(width: screenWidth)
+                        
+                        Spacer(minLength: 16)
+                        
+                        // Bottom Controls Section (Raised up)
+                        VStack(spacing: 0) {
+                            // Track Info Row
+                            m3TrackInfoRow(colors: colors)
+                            
+                            Spacer().frame(height: 10)
+                            
+                            // Wavy Progress Bar & Timestamps
+                            m3ProgressSection(colors: colors)
+                            
+                            Spacer().frame(height: 16)
+                            
+                            // Playback Controls Row (Skip Prev, Play/Pause, Skip Next)
+                            m3ControlsRow(colors: colors)
+                            
+                            Spacer().frame(height: 18)
+                            
+                            // Bottom Option Pills Row (Shuffle, Repeat, Queue)
+                            m3OptionsRow(colors: colors)
+                        }
+                        .padding(.horizontal, 24)
+                        .frame(width: screenWidth)
+                        .padding(.bottom, safeBottom)
+                    }
+                    .frame(width: screenWidth, height: screenHeight)
+                    .transition(.opacity)
                 }
-                .padding(.top, safeTop)
-                .padding(.horizontal, 24)
-                .frame(width: screenWidth)
-                
-                Spacer(minLength: 16)
-                
-                // Bottom Controls Section (Raised up)
-                VStack(spacing: 0) {
-                    // Track Info Row
-                    m3TrackInfoRow(colors: colors)
-                    
-                    Spacer().frame(height: 10)
-                    
-                    // Wavy Progress Bar & Timestamps
-                    m3ProgressSection(colors: colors)
-                    
-                    Spacer().frame(height: 16)
-                    
-                    // Playback Controls Row (Skip Prev, Play/Pause, Skip Next)
-                    m3ControlsRow(colors: colors)
-                    
-                    Spacer().frame(height: 18)
-                    
-                    // Bottom Option Pills Row (Shuffle, Repeat, Queue)
-                    m3OptionsRow(colors: colors)
-                }
-                .padding(.horizontal, 24)
-                .frame(width: screenWidth)
-                .padding(.bottom, safeBottom)
             }
-            .frame(width: screenWidth, height: screenHeight)
         }
         .frame(width: screenWidth, height: screenHeight)
         .clipped()
@@ -546,6 +561,142 @@ public struct NowPlayingView: View {
                 }
             }
         }
+    }
+    
+    // MARK: - Compact Lyrics Bottom Dock (Apple Music / Android Lune Parity)
+    private func m3CompactLyricsDock(colors: LuneColorScheme) -> some View {
+        let isDark = colors.isDark
+        let dockBg = isDark ? Color.black.opacity(0.55) : Color.white.opacity(0.85)
+        let dockBorder = isDark ? Color.white.opacity(0.14) : Color.black.opacity(0.08)
+        let iconTint = isDark ? Color.white : Color(hex: 0x141414)
+        
+        return VStack(spacing: 8) {
+            // Row 1: Compact Track Info (Artwork + Title/Artist + Favorite Heart + Return to Cover)
+            HStack(spacing: 10) {
+                if let song = player.currentSong {
+                    if let img = ArtworkCache.shared.image(for: song.id, data: song.artworkData) {
+                        Image(uiImage: img)
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: 38, height: 38)
+                            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    } else {
+                        ArtworkPlaceholderView(size: 38, cornerRadius: 10)
+                    }
+                    
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(song.title)
+                            .font(.custom("Quicksand-Bold", size: 14))
+                            .foregroundColor(colors.onSurface)
+                            .lineLimit(1)
+                        
+                        Text(song.artist)
+                            .font(.custom("Quicksand-Regular", size: 11.5))
+                            .foregroundColor(colors.onSurfaceVariant)
+                            .lineLimit(1)
+                    }
+                    
+                    Spacer(minLength: 8)
+                    
+                    // Favorite button
+                    let isFav = DataStore.shared.isFavorite(songId: song.id)
+                    Button {
+                        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                        library.toggleFavorite(for: song)
+                    } label: {
+                        Image(systemName: isFav ? "heart.fill" : "heart")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(isFav ? Color(hex: 0xEF4444) : colors.onSurface.opacity(0.70))
+                            .frame(width: 34, height: 34)
+                            .background(Circle().fill(isDark ? Color.white.opacity(0.12) : Color.black.opacity(0.06)))
+                    }
+                    .buttonStyle(M3BounceButtonStyle())
+                    
+                    // Return to Cover Artwork button
+                    Button {
+                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                        withAnimation(.spring(response: 0.35, dampingFraction: 0.75)) {
+                            activeMode = .artwork
+                        }
+                    } label: {
+                        Image(systemName: "photo")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundColor(colors.onSurface.opacity(0.80))
+                            .frame(width: 34, height: 34)
+                            .background(Circle().fill(isDark ? Color.white.opacity(0.12) : Color.black.opacity(0.06)))
+                    }
+                    .buttonStyle(M3BounceButtonStyle())
+                }
+            }
+            
+            // Row 2: Wavy Scrubber Bar
+            m3ProgressSection(colors: colors)
+            
+            // Row 3: Compact Playback Controls Row: [⏮] [▶/⏸] [⏭]
+            HStack(spacing: 24) {
+                // Skip Previous
+                Button {
+                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                    player.previous()
+                } label: {
+                    Circle()
+                        .fill(isDark ? Color.white.opacity(0.14) : Color.black.opacity(0.08))
+                        .frame(width: 44, height: 44)
+                        .overlay(
+                            Image(systemName: "backward.end.fill")
+                                .font(.system(size: 18, weight: .bold))
+                                .foregroundColor(iconTint)
+                        )
+                }
+                .buttonStyle(M3BounceButtonStyle())
+                
+                // Play / Pause (Clean 72x46 pill)
+                Button {
+                    UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                    player.togglePlayPause()
+                } label: {
+                    Capsule()
+                        .fill(isDark ? Color.white : Color(hex: 0x141414))
+                        .frame(width: 72, height: 46)
+                        .overlay(
+                            Image(systemName: player.isPlaying ? "pause.fill" : "play.fill")
+                                .font(.system(size: 22, weight: .bold))
+                                .foregroundColor(isDark ? Color.black : Color.white)
+                                .offset(x: player.isPlaying ? 0 : 1.5)
+                        )
+                }
+                .buttonStyle(M3BounceButtonStyle(scale: 0.94))
+                
+                // Skip Next
+                Button {
+                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                    player.next()
+                } label: {
+                    Circle()
+                        .fill(isDark ? Color.white.opacity(0.14) : Color.black.opacity(0.08))
+                        .frame(width: 44, height: 44)
+                        .overlay(
+                            Image(systemName: "forward.end.fill")
+                                .font(.system(size: 18, weight: .bold))
+                                .foregroundColor(iconTint)
+                        )
+                }
+                .buttonStyle(M3BounceButtonStyle())
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.top, 2)
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
+        .background(
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .fill(dockBg)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 22, style: .continuous)
+                        .stroke(dockBorder, lineWidth: 1)
+                )
+                .shadow(color: Color.black.opacity(isDark ? 0.35 : 0.10), radius: 14, x: 0, y: 5)
+        )
     }
     
     private func m3ProgressSection(colors: LuneColorScheme) -> some View {
@@ -991,50 +1142,40 @@ public struct NowPlayingView: View {
                                         player.seek(to: max(0, line.timestamp - (lyricsOffsetMs / 1000.0)))
                                     }
                                 } label: {
-                                    HStack(spacing: 10) {
-                                        if lyricsManager.isSynced {
-                                            Circle()
-                                                .fill(isActive ? colors.primary : Color.clear)
-                                                .frame(width: 5, height: 5)
-                                                .opacity(isActive ? 1.0 : 0.0)
-                                        }
-                                        
+                                    Group {
                                         if isInstrumental {
-                                            HStack(spacing: 6) {
+                                            HStack(spacing: 8) {
                                                 Image(systemName: "waveform")
-                                                    .font(.system(size: 13, weight: .semibold))
+                                                    .font(.system(size: 15, weight: .semibold))
                                                 Text("♪ ♪ ♪")
-                                                    .font(.custom("Quicksand-Bold", size: 14))
+                                                    .font(.custom("Quicksand-Bold", size: 16))
                                             }
                                             .foregroundColor(isActive ? colors.primary : colors.onSurface.opacity(0.35))
+                                            .padding(.vertical, 8)
                                         } else {
                                             Text(line.text)
-                                                .font(.custom("Quicksand-Bold", size: isActive ? 24 : 19))
+                                                .font(.custom("Quicksand-Bold", size: isActive ? 28 : 21))
                                                 .foregroundColor(
                                                     isActive
                                                         ? colors.onSurface
-                                                        : colors.onSurface.opacity(lyricsManager.isSynced ? 0.36 : 0.72)
+                                                        : colors.onSurface.opacity(lyricsManager.isSynced ? 0.35 : 0.70)
                                                 )
                                                 .multilineTextAlignment(lyricsAlignment)
-                                                .lineSpacing(3)
-                                                .blur(radius: (lyricsManager.isSynced && !isActive) ? 0.75 : 0)
+                                                .lineSpacing(4)
+                                                .blur(radius: (lyricsManager.isSynced && !isActive) ? 0.85 : 0)
                                                 .shadow(
                                                     color: isActive ? (isDark ? colors.primary.opacity(0.35) : colors.primary.opacity(0.18)) : Color.clear,
-                                                    radius: isActive ? 10 : 0,
+                                                    radius: isActive ? 12 : 0,
                                                     x: 0,
-                                                    y: 2
+                                                    y: 0
                                                 )
+                                                .padding(.vertical, isActive ? 6 : 2)
                                         }
                                     }
                                     .frame(maxWidth: .infinity, alignment: lyricsAlignment == .center ? .center : .leading)
-                                    .padding(.horizontal, 20)
-                                    .padding(.vertical, isActive ? 8 : 4)
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                            .fill(isActive ? colors.primary.opacity(isDark ? 0.12 : 0.08) : Color.clear)
-                                    )
-                                    .scaleEffect(isActive ? 1.05 : 1.0, anchor: lyricsAlignment == .center ? .center : .leading)
-                                    .animation(.spring(response: 0.38, dampingFraction: 0.72), value: isActive)
+                                    .padding(.horizontal, 16)
+                                    .scaleEffect(isActive ? 1.04 : 1.0, anchor: lyricsAlignment == .center ? .center : .leading)
+                                    .animation(.spring(response: 0.35, dampingFraction: 0.72), value: isActive)
                                 }
                                 .buttonStyle(.plain)
                                 .id(index)
@@ -1397,38 +1538,29 @@ public struct NowPlayingView: View {
                                         player.seek(to: line.timestamp)
                                     }
                                 } label: {
-                                    HStack(spacing: 12) {
-                                        if lyricsManager.isSynced {
-                                            Circle()
-                                                .fill(isActive ? Color.white : Color.clear)
-                                                .frame(width: 5, height: 5)
-                                                .opacity(isActive ? 1.0 : 0.0)
-                                        }
-                                        
+                                    Group {
                                         if isInstrumental {
-                                            HStack(spacing: 6) {
+                                            HStack(spacing: 8) {
                                                 Image(systemName: "waveform")
-                                                    .font(.system(size: 14, weight: .semibold))
+                                                    .font(.system(size: 15, weight: .semibold))
                                                 Text("♪ ♪ ♪")
-                                                    .font(.custom("Quicksand-Bold", size: 14))
+                                                    .font(.custom("Quicksand-Bold", size: 16))
                                             }
                                             .foregroundColor(isActive ? .white : .white.opacity(0.35))
+                                            .padding(.vertical, 8)
                                         } else {
                                             Text(line.text)
-                                                .font(.custom("Quicksand-Bold", size: isActive ? 26 : 21))
-                                                .foregroundColor(isActive ? Color.white : Color.white.opacity(lyricsManager.isSynced ? 0.38 : 0.75))
+                                                .font(.custom("Quicksand-Bold", size: isActive ? 28 : 22))
+                                                .foregroundColor(isActive ? Color.white : Color.white.opacity(lyricsManager.isSynced ? 0.35 : 0.72))
                                                 .multilineTextAlignment(.leading)
                                                 .lineSpacing(4)
-                                                .blur(radius: (lyricsManager.isSynced && !isActive) ? 0.8 : 0)
-                                                .shadow(color: isActive ? Color.white.opacity(0.40) : Color.clear, radius: 10, x: 0, y: 2)
+                                                .blur(radius: (lyricsManager.isSynced && !isActive) ? 0.85 : 0)
+                                                .shadow(color: isActive ? Color.white.opacity(0.30) : Color.clear, radius: 12, x: 0, y: 0)
+                                                .padding(.vertical, isActive ? 6 : 2)
                                         }
                                     }
+                                    .frame(maxWidth: .infinity, alignment: .leading)
                                     .padding(.horizontal, 24)
-                                    .padding(.vertical, isActive ? 8 : 4)
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                            .fill(isActive ? Color.white.opacity(0.12) : Color.clear)
-                                    )
                                     .scaleEffect(isActive ? 1.04 : 1.0, anchor: .leading)
                                     .animation(.spring(response: 0.38, dampingFraction: 0.72), value: isActive)
                                 }

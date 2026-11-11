@@ -92,13 +92,11 @@ public struct M3WavyProgressIndicator: View {
                         }
                     }
                     
-                    // 3. Scrubber Thumb (14x14 squircle, 1:1 Android Lune Parity)
-                    // Locked permanently to activeWidth center
-                    RoundedRectangle(cornerRadius: 5, style: .continuous)
+                    // 3. Scrubber Thumb (Clean circular thumb, rock-solid on track)
+                    Circle()
                         .fill(primaryColor)
                         .frame(width: 14, height: 14)
-                        .rotationEffect(.degrees(isPlaying ? thumbRotation : 0))
-                        .shadow(color: Color.black.opacity(0.35), radius: 1.5, x: 0, y: 1)
+                        .shadow(color: Color.black.opacity(0.35), radius: 2, x: 0, y: 1)
                         .offset(x: activeWidth - 7)
                 }
                 .frame(width: width, height: height, alignment: .leading)

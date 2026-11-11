@@ -146,53 +146,41 @@ public struct LyricsView: View {
                                                 onSeek(max(0, line.timestamp - timeOffset))
                                             }
                                         } label: {
-                                            HStack(spacing: 12) {
-                                                if lyricsManager.isSynced {
-                                                    Circle()
-                                                        .fill(isActive ? colors.primary : Color.clear)
-                                                        .frame(width: 6, height: 6)
-                                                        .shadow(color: isActive ? colors.primary : .clear, radius: 4)
-                                                        .opacity(isActive ? 1.0 : 0.0)
-                                                }
-                                                
+                                            Group {
                                                 if isInstrumental {
                                                     HStack(spacing: 8) {
                                                         Image(systemName: "waveform")
                                                             .font(.system(size: 15, weight: .semibold))
                                                         Text("♪ ♪ ♪")
-                                                            .font(.custom("Quicksand-Bold", size: 15))
+                                                            .font(.custom("Quicksand-Bold", size: 16))
                                                     }
                                                     .foregroundColor(isActive ? colors.primary : colors.onSurface.opacity(0.35))
-                                                    .padding(.vertical, 6)
+                                                    .padding(.vertical, 8)
                                                 } else {
                                                     Text(line.text)
                                                         .font(.custom("Quicksand-Bold", size: isActive ? 28 : 22))
                                                         .foregroundColor(
                                                             isActive
                                                                 ? colors.onSurface
-                                                                : colors.onSurface.opacity(lyricsManager.isSynced ? 0.38 : 0.76)
+                                                                : colors.onSurface.opacity(lyricsManager.isSynced ? 0.35 : 0.72)
                                                         )
                                                         .multilineTextAlignment(textAlign)
                                                         .lineSpacing(4)
-                                                        .blur(radius: (lyricsManager.isSynced && !isActive) ? 0.8 : 0)
+                                                        .blur(radius: (lyricsManager.isSynced && !isActive) ? 0.85 : 0)
                                                         .shadow(
                                                             color: isActive
-                                                                ? (isDark ? colors.primary.opacity(0.42) : colors.primary.opacity(0.22))
+                                                                ? (isDark ? colors.primary.opacity(0.35) : colors.primary.opacity(0.18))
                                                                 : Color.clear,
-                                                            radius: isActive ? 14 : 0,
+                                                            radius: isActive ? 12 : 0,
                                                             x: 0,
-                                                            y: 2
+                                                            y: 0
                                                         )
+                                                        .padding(.vertical, isActive ? 6 : 2)
                                                 }
                                             }
                                             .frame(maxWidth: .infinity, alignment: textAlign == .center ? .center : .leading)
-                                            .padding(.horizontal, 24)
-                                            .padding(.vertical, isActive ? 10 : 5)
-                                            .background(
-                                                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                                    .fill(isActive ? colors.primary.opacity(isDark ? 0.12 : 0.08) : Color.clear)
-                                            )
-                                            .scaleEffect(isActive ? 1.05 : 1.0, anchor: textAlign == .center ? .center : .leading)
+                                            .padding(.horizontal, 20)
+                                            .scaleEffect(isActive ? 1.04 : 1.0, anchor: textAlign == .center ? .center : .leading)
                                             .animation(.spring(response: 0.38, dampingFraction: 0.72), value: isActive)
                                         }
                                         .buttonStyle(.plain)
