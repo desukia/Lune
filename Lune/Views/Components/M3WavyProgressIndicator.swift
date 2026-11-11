@@ -32,8 +32,7 @@ public struct M3WavyProgressIndicator: View {
     private var waveAmplitude: CGFloat { waveHeight / 2.0 } // 3.0dp
     private let waveThickness: CGFloat = 4.0
     private let trackThickness: CGFloat = 4.0
-    private let waveVelocity: CGFloat = 38.0 // 38.dp/s
-    private var cycleDuration: Double { Double(waveLength / waveVelocity) } // ~0.947s
+    private let cycleDuration: Double = 2.0 // Exact 2.0s cycle duration (same calm speed as before)
     
     public init(
         progress: Binding<Double>,
@@ -54,9 +53,10 @@ public struct M3WavyProgressIndicator: View {
     public var body: some View {
         TimelineView(.animation(paused: !isPlaying || isDragging)) { timeline in
             let time = timeline.date.timeIntervalSinceReferenceDate
-            let phase = isPlaying ? (time.truncatingRemainder(dividingBy: cycleDuration) / cycleDuration) * 2 * .pi : 0.0
-            // Rotation is locked 1:1 to the wave oscillation phase
-            let thumbRotation = isPlaying ? (phase / (2.0 * .pi)) * 360.0 : 0.0
+            let progressCycle = time.truncatingRemainder(dividingBy: cycleDuration) / cycleDuration
+            let phase = isPlaying ? progressCycle * 2.0 * .pi : 0.0
+            // Rotation is locked 1:1 to the wave oscillation phase at the same calm 2.0s speed
+            let thumbRotation = isPlaying ? progressCycle * 360.0 : 0.0
             
             GeometryReader { geometry in
                 let width = geometry.size.width
