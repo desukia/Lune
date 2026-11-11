@@ -215,7 +215,7 @@ public final class AudioPlayerManager: ObservableObject {
             if song.url.isFileURL && !FileManager.default.fileExists(atPath: song.url.path) {
                 MusicLibraryManager.shared.deleteSong(song)
             } else if queue.count > 1 {
-                nextSong()
+                next()
             }
         }
     }
@@ -273,6 +273,20 @@ public final class AudioPlayerManager: ObservableObject {
         isPlaying = false
         stopTimeObserver()
         updateNowPlayingInfo()
+    }
+    
+    public func stop() {
+        playerNode.stop()
+        isPlaying = false
+        stopTimeObserver()
+        currentSong = nil
+        currentTime = 0.0
+        playbackProgress = 0.0
+        updateNowPlayingInfo()
+    }
+    
+    public func nextSong() {
+        next()
     }
     
     public func next() {

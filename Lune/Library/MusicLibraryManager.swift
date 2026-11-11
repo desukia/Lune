@@ -338,10 +338,9 @@ public final class MusicLibraryManager: ObservableObject {
         let player = AudioPlayerManager.shared
         if player.currentSong?.id == song.id {
             if player.queue.count > 1 {
-                player.nextSong()
+                player.next()
             } else {
                 player.stop()
-                player.currentSong = nil
             }
         }
         
