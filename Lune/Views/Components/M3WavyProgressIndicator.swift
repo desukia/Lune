@@ -10,7 +10,7 @@
 //  - trackThickness = 4.dp
 //  - incremental = false (uniform wave across active track)
 //  - Continuous frame-driven TimelineView animation (never freezes, always in sync)
-//  - Rotating 14x14 squircle thumb (360 deg in 2.0s when playing)
+//  - Rotating 14x14 squircle thumb (360 deg in 2.0s when playing, cornerRadius 5.dp) locked to track end
 //
 
 import SwiftUI
@@ -60,19 +60,18 @@ public struct M3WavyProgressIndicator: View {
             GeometryReader { geometry in
                 let width = geometry.size.width
                 let height = geometry.size.height
+                let centerY = height / 2.0
                 let current = isDragging ? dragProgress : progress
-                let activeWidth = max(0, min(width, width * CGFloat(current)))
-                let centerY = height / 2
+                let activeWidth = max(0.0, min(width, width * CGFloat(current)))
                 let effectiveAmplitude: CGFloat = (isPlaying && isWavy && !isDragging) ? waveAmplitude : 0.0
                 
                 ZStack(alignment: .leading) {
-                    // Inactive Background Track (Full Width, trackThickness = 4.dp)
+                    // 1. Inactive Background Track (Full Width, height = 4.dp)
                     Capsule()
                         .fill(trackColor)
-                        .frame(height: trackThickness)
-                        .position(x: width / 2, y: centerY)
+                        .frame(width: width, height: trackThickness)
                     
-                    // Active Wave / Track (waveThickness = 4.dp, incremental = false)
+                    // 2. Active Wave / Track (height = 4.dp, incremental = false)
                     if activeWidth > 0 {
                         if effectiveAmplitude > 0.05 && activeWidth > 12 {
                             M3WavySineShape(
@@ -90,20 +89,19 @@ public struct M3WavyProgressIndicator: View {
                             Capsule()
                                 .fill(primaryColor)
                                 .frame(width: max(activeWidth, waveThickness), height: waveThickness)
-                                .position(x: max(activeWidth, waveThickness) / 2, y: centerY)
                         }
                     }
                     
-                    // Scrubber Thumb: 1:1 Android Lune Parity (14x14 squircle rotating 360 deg when playing)
-                    RoundedRectangle(cornerRadius: isDragging ? 6 : 5, style: .continuous)
+                    // 3. Scrubber Thumb (14x14 squircle, 1:1 Android Lune Parity)
+                    // Locked permanently to activeWidth center
+                    RoundedRectangle(cornerRadius: 5, style: .continuous)
                         .fill(primaryColor)
-                        .frame(width: isDragging ? 16 : 14, height: isDragging ? 16 : 14)
+                        .frame(width: 14, height: 14)
                         .rotationEffect(.degrees(isPlaying ? thumbRotation : 0))
-                        .shadow(color: Color.black.opacity(0.35), radius: isDragging ? 3 : 1.5, x: 0, y: 1)
-                        .position(x: activeWidth, y: centerY)
-                        .scaleEffect(isDragging ? 1.20 : 1.0)
-                        .animation(.spring(response: 0.25, dampingFraction: 0.65), value: isDragging)
+                        .shadow(color: Color.black.opacity(0.35), radius: 1.5, x: 0, y: 1)
+                        .offset(x: activeWidth - 7)
                 }
+                .frame(width: width, height: height, alignment: .leading)
                 .contentShape(Rectangle())
                 .gesture(
                     DragGesture(minimumDistance: 0)
@@ -112,12 +110,19 @@ public struct M3WavyProgressIndicator: View {
                                 isDragging = true
                                 UIImpactFeedbackGenerator(style: .light).impactOccurred()
                             }
-                            let newProgress = max(0.0, min(1.0, Double(value.location.x / width)))
+                            guard width > 0 else { return }
+                            let clampedX = max(0.0, min(Double(width), Double(value.location.x)))
+                            let newProgress = clampedX / Double(width)
                             dragProgress = newProgress
+                            progress = newProgress
                         }
                         .onEnded { value in
-                            let finalProgress = max(0.0, min(1.0, Double(value.location.x / width)))
+                            guard width > 0 else { return }
+                            let clampedX = max(0.0, min(Double(width), Double(value.location.x)))
+                            let finalProgress = clampedX / Double(width)
                             isDragging = false
+                            dragProgress = finalProgress
+                            progress = finalProgress
                             onSeek(finalProgress)
                             UIImpactFeedbackGenerator(style: .medium).impactOccurred()
                         }
