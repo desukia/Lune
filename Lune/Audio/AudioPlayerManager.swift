@@ -243,19 +243,10 @@ public final class AudioPlayerManager: ObservableObject {
                 guard let self = self else { return }
                 // Discard completion handler if playback was stopped, skipped, or seeked
                 guard self.playbackGeneration == currentGeneration else { return }
-                guard self.isPlaying && !self.isSeeking else { return }
+                guard !self.isSeeking else { return }
                 
-                // Confirm the audio segment actually reached near the end of the song
-                if let nodeTime = self.playerNode.lastRenderTime,
-                   let playerTime = self.playerNode.playerTime(forNodeTime: nodeTime) {
-                    let playedFrame = playerTime.sampleTime + self.seekFrame
-                    let threshold = AVAudioFramePosition(self.sampleRate * 0.5)
-                    if playedFrame >= self.lengthSamples - threshold {
-                        self.handleSongEnded()
-                    }
-                } else if self.currentTime >= max(1.0, self.duration - 1.0) {
-                    self.handleSongEnded()
-                }
+                self.playbackGeneration += 1
+                self.handleSongEnded()
             }
         }
     }
@@ -442,6 +433,14 @@ public final class AudioPlayerManager: ObservableObject {
                     if seconds >= 0 && seconds <= self.duration {
                         self.currentTime = seconds
                         self.playbackProgress = Float(seconds / max(1.0, self.duration))
+                    } else if seconds > self.duration {
+                        self.currentTime = self.duration
+                        self.playbackProgress = 1.0
+                    }
+                    
+                    if self.duration > 1.0 && seconds >= self.duration {
+                        self.playbackGeneration += 1
+                        self.handleSongEnded()
                     }
                 }
             }

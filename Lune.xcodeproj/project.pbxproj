@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		LOC000000000000000000000 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = LOC000000000000000000001 /* Localizable.strings */; };
 		E4B597FB34BBAD62ECF4DB57 /* AiTelemetryStorage.swift in Sources/Resources */ = {isa = PBXBuildFile; fileRef = 35D6211C5AD6F3F75A20B52B /* AiTelemetryStorage.swift */; };
 		BB8ECACF65B2445DFC4FB8C0 /* LuneAiEngine.swift in Sources/Resources */ = {isa = PBXBuildFile; fileRef = 03E0201D1CF1804DAF4233A0 /* LuneAiEngine.swift */; };
 		E4F5F1CE191D0E3AB5D3236B /* LuneApp.swift in Sources/Resources */ = {isa = PBXBuildFile; fileRef = 4CD7612DEE3F7940BEEAEC44 /* LuneApp.swift */; };
@@ -53,6 +54,16 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		LOC000000000000000000002 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = "Resources/en.lproj/Localizable.strings"; sourceTree = "<group>"; };
+		LOC000000000000000000003 /* ar */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ar; path = "Resources/ar.lproj/Localizable.strings"; sourceTree = "<group>"; };
+		LOC000000000000000000004 /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = "Resources/de.lproj/Localizable.strings"; sourceTree = "<group>"; };
+		LOC000000000000000000005 /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = "Resources/es.lproj/Localizable.strings"; sourceTree = "<group>"; };
+		LOC000000000000000000006 /* fa */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fa; path = "Resources/fa.lproj/Localizable.strings"; sourceTree = "<group>"; };
+		LOC000000000000000000007 /* fr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fr; path = "Resources/fr.lproj/Localizable.strings"; sourceTree = "<group>"; };
+		LOC000000000000000000008 /* pl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = pl; path = "Resources/pl.lproj/Localizable.strings"; sourceTree = "<group>"; };
+		LOC000000000000000000009 /* pt-BR */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "pt-BR"; path = "Resources/pt-BR.lproj/Localizable.strings"; sourceTree = "<group>"; };
+		LOC000000000000000000010 /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = "Resources/ru.lproj/Localizable.strings"; sourceTree = "<group>"; };
+		LOC000000000000000000011 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "Resources/zh-Hans.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		7D1651BFBBE29B2A3404FEAB /* Lune.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Lune.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		35D6211C5AD6F3F75A20B52B /* AiTelemetryStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "AiTelemetryStorage.swift"; path = "AI/AiTelemetryStorage.swift"; sourceTree = "<group>"; };
 		03E0201D1CF1804DAF4233A0 /* LuneAiEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "LuneAiEngine.swift"; path = "AI/LuneAiEngine.swift"; sourceTree = "<group>"; };
@@ -146,6 +157,7 @@
 				92C78407BDCEB043156B7245 /* AiModels.swift */,
 				3697C8A55B1A471991DC9ADC /* Models.swift */,
 				152FC49B564DEC4CBC1B20CC /* Song.swift */,
+				LOC000000000000000000001 /* Localizable.strings */,
 				AB50414DD546CCBA7BE40984 /* Assets.xcassets */,
 				028D76367302C8749170F7E0 /* quicksand_bold.ttf */,
 				5FA7B43BF25BF3EDF370C8E7 /* quicksand_regular.ttf */,
@@ -200,6 +212,26 @@
 		};
 /* End PBXNativeTarget section */
 
+/* Begin PBXVariantGroup section */
+		LOC000000000000000000001 /* Localizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				LOC000000000000000000002 /* en */,
+				LOC000000000000000000003 /* ar */,
+				LOC000000000000000000004 /* de */,
+				LOC000000000000000000005 /* es */,
+				LOC000000000000000000006 /* fa */,
+				LOC000000000000000000007 /* fr */,
+				LOC000000000000000000008 /* pl */,
+				LOC000000000000000000009 /* pt-BR */,
+				LOC000000000000000000010 /* ru */,
+				LOC000000000000000000011 /* zh-Hans */,
+			);
+			name = Localizable.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
 /* Begin PBXProject section */
 		0A33005A4ABBDD6995228817 /* Project object */ = {
 			isa = PBXProject;
@@ -224,6 +256,15 @@
 			knownRegions = (
 				en,
 				Base,
+				ar,
+				de,
+				es,
+				fa,
+				fr,
+				pl,
+				"pt-BR",
+				ru,
+				"zh-Hans",
 			);
 			mainGroup = 0A85897F1A32FE9B91C081CD;
 			productRefGroup = B88D7E26791946AEFDCC8BB7 /* Products */;
@@ -240,6 +281,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				LOC000000000000000000000 /* Localizable.strings in Resources */,
 				350F41E8369516839EFF0CAA /* quicksand_bold.ttf in Resources */,
 				64F6C35BA7BFC4192186ED78 /* quicksand_regular.ttf in Resources */,
 				33F307FDC8CC0DD5142A6F6E /* Assets.xcassets in Resources */,
