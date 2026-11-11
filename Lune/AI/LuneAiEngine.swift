@@ -109,7 +109,7 @@ public final class LuneAiEngine: ObservableObject {
         public let isFocusFriendly: Bool
     }
     
-    public func profileSong(_ song: Song) -> AudioProfile {
+    public nonisolated func profileSong(_ song: Song) -> AudioProfile {
         let titleLower = song.title.lowercased()
         let genreLower = (song.genre ?? "").lowercased()
         
@@ -204,7 +204,7 @@ public final class LuneAiEngine: ObservableObject {
         return max(0, min(1.0, sim))
     }
     
-    private func isCompatibleGenre(_ g1: String, _ g2: String) -> Bool {
+    private nonisolated func isCompatibleGenre(_ g1: String, _ g2: String) -> Bool {
         let rockFamily: Set<String> = ["rock", "alternative", "indie", "metal", "punk", "grunge", "hard rock"]
         let popFamily: Set<String> = ["pop", "dance", "electropop", "synthpop", "indie pop", "disco"]
         let elecFamily: Set<String> = ["electronic", "edm", "house", "techno", "synthwave", "ambient", "trance"]
@@ -328,24 +328,21 @@ public final class LuneAiEngine: ObservableObject {
     public func refreshMixes(allSongs: [Song]) {
         guard !allSongs.isEmpty else { return }
         
-        Task(priority: .utility) { [weak self] in
-            guard let self = self else { return }
-            
-            var generated: [AiMix] = []
-            let currentTime = TimeOfDay.current()
-            let dayType = DayType.current()
-            let isWeekend = dayType == .weekend
-            
-            // Fast profile cache to avoid redundant regex profiling
-            var profiles: [Int64: AudioProfile] = [:]
-            func getProfile(_ song: Song) -> AudioProfile {
-                if let p = profiles[song.id] { return p }
-                let p = self.profileSong(song)
-                profiles[song.id] = p
-                return p
-            }
-            
-            // 1. Daily AI Flow
+        var generated: [AiMix] = []
+        let currentTime = TimeOfDay.current()
+        let dayType = DayType.current()
+        let isWeekend = dayType == .weekend
+        
+        // Fast profile cache to avoid redundant regex profiling
+        var profiles: [Int64: AudioProfile] = [:]
+        func getProfile(_ song: Song) -> AudioProfile {
+            if let p = profiles[song.id] { return p }
+            let p = profileSong(song)
+            profiles[song.id] = p
+            return p
+        }
+        
+        // 1. Daily AI Flow
             let daily = allSongs.sorted { self.getSongAffinity(songId: $0.id) > self.getSongAffinity(songId: $1.id) }.prefix(32)
         if daily.count >= 3 {
             generated.append(
@@ -531,10 +528,6 @@ public final class LuneAiEngine: ObservableObject {
             }
         }
         
-            let finalMixes = generated
-            await MainActor.run {
-                self.aiMixes = finalMixes
-            }
-        }
+        self.aiMixes = generated
     }
 }
