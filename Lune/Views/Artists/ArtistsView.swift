@@ -57,7 +57,7 @@ public struct ArtistsView: View {
                                         .font(.custom("Quicksand-Bold", size: 13))
                                         .foregroundColor(isM3 ? colors.onSurface : .primary)
                                         .lineLimit(1)
-                                    Text("\(artist.songCount) tracks")
+                                    Text("%d tracks".localized(artist.songCount))
                                         .font(.custom("Quicksand-Regular", size: 11))
                                         .foregroundColor(isM3 ? colors.onSurfaceVariant : .secondary)
                                 }
@@ -77,7 +77,7 @@ public struct ArtistsView: View {
                 ArtistDetailView(artist: artist)
                     .toolbar {
                         ToolbarItem(placement: .topBarTrailing) {
-                            Button("Done") {
+                            Button("Done".localized) {
                                 selectedArtist = nil
                             }
                             .font(.custom("Quicksand-Bold", size: 15))
@@ -180,7 +180,7 @@ public struct ArtistDetailView: View {
                     
                     Text(artist.name)
                         .font(.custom("Quicksand-Bold", size: 24))
-                    Text("\(artistSongs.count) songs • \(artist.albumCount) albums")
+                    Text("\("%d songs".localized(artistSongs.count)) • \("%d albums".localized(artist.albumCount))")
                         .font(.custom("Quicksand-Regular", size: 14))
                         .foregroundColor(.secondary)
                     
@@ -189,7 +189,7 @@ public struct ArtistDetailView: View {
                     } label: {
                         HStack(spacing: 6) {
                             Image(systemName: "play.fill")
-                            Text("Play Artist")
+                            Text("Play Artist".localized)
                                 .font(.custom("Quicksand-Bold", size: 14))
                         }
                         .foregroundColor(.white)

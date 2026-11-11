@@ -49,7 +49,7 @@ public struct EqualizerView: View {
                     Button {
                         restoreDefaults()
                     } label: {
-                        Text("Restore Defaults")
+                        Text("Restore Defaults".localized)
                             .font(.custom("Quicksand-Bold", size: 14))
                             .foregroundColor(.secondary)
                             .padding(.vertical, 12)
@@ -61,11 +61,11 @@ public struct EqualizerView: View {
                 }
                 .padding(.top, 16)
             }
-            .navigationTitle("Equalizer")
+            .navigationTitle("Equalizer".localized)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("Done") { dismiss() }
+                    Button("Done".localized) { dismiss() }
                         .font(.custom("Quicksand-Bold", size: 15))
                 }
             }
@@ -140,7 +140,7 @@ public struct EqualizerView: View {
     private var bassBoostSection: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
-                Text("EXTRA BASS")
+                Text("EXTRA BASS".localized)
                     .font(.custom("Quicksand-Bold", size: 14))
                 Spacer()
                 Text(String(format: "%.0f dB", bassBoost))
@@ -160,12 +160,12 @@ public struct EqualizerView: View {
     
     private var reverbSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Reverb Environment")
+            Text("Reverb Environment".localized)
                 .font(.custom("Quicksand-Bold", size: 14))
             
             Picker("Reverb", selection: $selectedReverb) {
                 ForEach(ReverbPresetType.allCases) { opt in
-                    Text(opt.rawValue).tag(opt)
+                    Text(opt.displayName).tag(opt)
                 }
             }
             .pickerStyle(.segmented)
@@ -183,7 +183,7 @@ public struct EqualizerView: View {
             // Speed
             VStack(alignment: .leading, spacing: 8) {
                 HStack {
-                    Text("Playback Speed")
+                    Text("Playback Speed".localized)
                         .font(.custom("Quicksand-Bold", size: 14))
                     Spacer()
                     Text(String(format: "%.2fx", playbackRate))
@@ -201,10 +201,10 @@ public struct EqualizerView: View {
             // Pitch
             VStack(alignment: .leading, spacing: 8) {
                 HStack {
-                    Text("Pitch Shift")
+                    Text("Pitch Shift".localized)
                         .font(.custom("Quicksand-Bold", size: 14))
                     Spacer()
-                    Text(String(format: "%+.1f semitones", pitchSemitones))
+                    Text("%+.1f semitones".localized(pitchSemitones))
                         .font(.custom("Quicksand-Bold", size: 13))
                         .foregroundColor(primaryColor)
                 }

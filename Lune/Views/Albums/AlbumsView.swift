@@ -193,7 +193,7 @@ public struct AlbumDetailView: View {
                     } label: {
                         HStack(spacing: 6) {
                             Image(systemName: "play.fill")
-                            Text("Play Album")
+                            Text("Play Album".localized)
                                 .font(.custom("Quicksand-Bold", size: 14))
                         }
                         .foregroundColor(.white)

@@ -49,7 +49,7 @@ public struct AiMixesView: View {
                 
                 // 8 Personalized Mix Cards
                 VStack(alignment: .leading, spacing: 14) {
-                    Text("Your Personalized Mixes")
+                    Text("Your Personalized Mixes".localized)
                         .font(.custom("Quicksand-Bold", size: 20))
                         .foregroundColor(.primary)
                         .padding(.horizontal, 16)
@@ -95,10 +95,10 @@ public struct AiMixesView: View {
             }
             
             VStack(alignment: .leading, spacing: 3) {
-                Text("Lune AI Engine")
+                Text("Lune AI Engine".localized)
                     .font(.custom("Quicksand-Bold", size: 18))
                     .foregroundColor(.primary)
-                Text("100% on-device & private learning. Adapts to your listening hours and harmonic taste.")
+                Text("100% on-device & private learning. Adapts to your listening hours and harmonic taste.".localized)
                     .font(.custom("Quicksand-Regular", size: 12))
                     .foregroundColor(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -122,7 +122,7 @@ public struct AiMixesView: View {
                 HStack(spacing: 8) {
                     Image(systemName: "wand.and.stars")
                         .font(.system(size: 16, weight: .bold))
-                    Text("Smart Shuffle")
+                    Text("Smart Shuffle".localized)
                         .font(.custom("Quicksand-Bold", size: 14))
                 }
                 .foregroundColor(.white)
@@ -145,7 +145,7 @@ public struct AiMixesView: View {
                 HStack(spacing: 8) {
                     Image(systemName: "safari.fill")
                         .font(.system(size: 16, weight: .bold))
-                    Text("Discovery")
+                    Text("Discovery".localized)
                         .font(.custom("Quicksand-Bold", size: 14))
                 }
                 .foregroundColor(.white)
@@ -196,16 +196,16 @@ public struct AiMixesView: View {
                     }
                     
                     VStack(alignment: .leading, spacing: 3) {
-                        Text(mix.title)
+                        Text(mix.title.localized)
                             .font(.custom("Quicksand-Bold", size: 18))
                             .foregroundColor(.white)
                         
-                        Text(mix.subtitle)
+                        Text(mix.subtitle.localized)
                             .font(.custom("Quicksand-Regular", size: 13))
                             .foregroundColor(.white.opacity(0.85))
                             .lineLimit(1)
                         
-                        Text("\(mix.songs.count) songs")
+                        Text("%d songs".localized(mix.songs.count))
                             .font(.custom("Quicksand-Bold", size: 11))
                             .foregroundColor(.white.opacity(0.75))
                             .padding(.top, 2)
@@ -243,7 +243,7 @@ public struct AiMixesView: View {
             Image(systemName: "music.note")
                 .font(.system(size: 32))
                 .foregroundColor(.secondary)
-            Text("Analyzing your library...")
+            Text("Analyzing your library...".localized)
                 .font(.custom("Quicksand-Bold", size: 15))
                 .foregroundColor(.secondary)
         }

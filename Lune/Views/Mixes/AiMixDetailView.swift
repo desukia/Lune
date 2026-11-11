@@ -45,11 +45,11 @@ public struct AiMixDetailView: View {
                                 .font(.system(size: 44, weight: .bold))
                                 .foregroundColor(.white)
                             
-                            Text(mix.title)
+                            Text(mix.title.localized)
                                 .font(.custom("Quicksand-Bold", size: 24))
                                 .foregroundColor(.white)
                             
-                            Text(mix.description)
+                            Text(mix.description.localized)
                                 .font(.custom("Quicksand-Regular", size: 14))
                                 .foregroundColor(.white.opacity(0.85))
                                 .multilineTextAlignment(.center)
@@ -63,7 +63,7 @@ public struct AiMixDetailView: View {
                                 } label: {
                                     HStack(spacing: 6) {
                                         Image(systemName: "play.fill")
-                                        Text("Play All")
+                                        Text("Play All".localized)
                                             .font(.custom("Quicksand-Bold", size: 14))
                                     }
                                     .foregroundColor(.white)
@@ -80,7 +80,7 @@ public struct AiMixDetailView: View {
                                 } label: {
                                     HStack(spacing: 6) {
                                         Image(systemName: "shuffle")
-                                        Text("Smart Shuffle")
+                                        Text("Smart Shuffle".localized)
                                             .font(.custom("Quicksand-Bold", size: 14))
                                     }
                                     .foregroundColor(.white)
@@ -136,11 +136,11 @@ public struct AiMixDetailView: View {
                 .padding(.top, 16)
                 .padding(.bottom, 40)
             }
-            .navigationTitle(mix.title)
+            .navigationTitle(mix.title.localized)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("Close") { dismiss() }
+                    Button("Close".localized) { dismiss() }
                         .font(.custom("Quicksand-Bold", size: 15))
                 }
             }

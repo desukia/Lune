@@ -33,9 +33,9 @@ public enum AppThemeMode: String, CaseIterable, Identifiable, Codable {
     
     public var displayName: String {
         switch self {
-        case .system: return "Auto (System)"
-        case .light: return "Light"
-        case .dark: return "Dark"
+        case .system: return "Follow System".localized
+        case .light: return "Light".localized
+        case .dark: return "Dark".localized
         }
     }
 }

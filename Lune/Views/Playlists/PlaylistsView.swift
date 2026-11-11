@@ -44,7 +44,7 @@ public struct PlaylistsView: View {
                         HStack(spacing: 10) {
                             Image(systemName: "plus.circle.fill")
                                 .font(.system(size: 20))
-                            Text("New Playlist")
+                            Text("New Playlist".localized)
                                 .font(.custom("Quicksand-Bold", size: 15))
                         }
                         .foregroundColor(isM3 ? colors.onPrimary : .white)
@@ -73,11 +73,11 @@ public struct PlaylistsView: View {
                                 .foregroundColor(isM3 ? colors.onSurfaceVariant : .secondary)
                                 .padding(.top, 40)
                             
-                            Text("No playlists yet")
+                            Text("No playlists yet".localized)
                                 .font(.custom("Quicksand-Bold", size: 17))
                                 .foregroundColor(isM3 ? colors.onSurface : .primary)
                             
-                            Text("Tap 'New Playlist' above to create your first collection.")
+                            Text("Tap 'New Playlist' above to create your first collection.".localized)
                                 .font(.custom("Quicksand-Regular", size: 13))
                                 .foregroundColor(isM3 ? colors.onSurfaceVariant : .secondary)
                                 .multilineTextAlignment(.center)
@@ -118,7 +118,7 @@ public struct PlaylistsView: View {
                                                 .font(.custom("Quicksand-Bold", size: 14))
                                                 .foregroundColor(isM3 ? colors.onSurface : .primary)
                                                 .lineLimit(1)
-                                            Text("\(pl.songIds.count) \(pl.songIds.count == 1 ? "song" : "songs")")
+                                            Text("%d songs".localized(pl.songIds.count))
                                                 .font(.custom("Quicksand-Regular", size: 12))
                                                 .foregroundColor(isM3 ? colors.onSurfaceVariant : .secondary)
                                         }
@@ -141,9 +141,9 @@ public struct PlaylistsView: View {
                 PlaylistDetailView(playlist: pl, onUpdate: { reload() })
             }
         }
-        .alert("New Playlist", isPresented: $showCreateDialog) {
-            TextField("Playlist Name", text: $newPlaylistName)
-            Button("Create") {
+        .alert("New Playlist".localized, isPresented: $showCreateDialog) {
+            TextField("Playlist Name".localized, text: $newPlaylistName)
+            Button("Create".localized) {
                 let trimmed = newPlaylistName.trimmingCharacters(in: .whitespaces)
                 if !trimmed.isEmpty {
                     let created = DataStore.shared.createPlaylist(name: trimmed)
@@ -152,7 +152,7 @@ public struct PlaylistsView: View {
                     selectedPlaylist = created
                 }
             }
-            Button("Cancel", role: .cancel) { newPlaylistName = "" }
+            Button("Cancel".localized, role: .cancel) { newPlaylistName = "" }
         }
     }
     
@@ -248,7 +248,7 @@ public struct PlaylistDetailView: View {
                         .font(.custom("Quicksand-Bold", size: 24))
                         .foregroundColor(.primary)
                     
-                    Text("\(playlistSongs.count) \(playlistSongs.count == 1 ? "track" : "tracks")")
+                    Text("%d tracks".localized(playlistSongs.count))
                         .font(.custom("Quicksand-Regular", size: 14))
                         .foregroundColor(.secondary)
                     
@@ -260,7 +260,7 @@ public struct PlaylistDetailView: View {
                             } label: {
                                 HStack(spacing: 6) {
                                     Image(systemName: "play.fill")
-                                    Text("Play")
+                                    Text("Play".localized)
                                         .font(.custom("Quicksand-Bold", size: 14))
                                 }
                                 .foregroundColor(.white)
@@ -276,7 +276,7 @@ public struct PlaylistDetailView: View {
                         } label: {
                             HStack(spacing: 6) {
                                 Image(systemName: "plus")
-                                Text("Add Songs")
+                                Text("Add Songs".localized)
                                     .font(.custom("Quicksand-Bold", size: 14))
                             }
                             .foregroundColor(.primary)
@@ -292,7 +292,7 @@ public struct PlaylistDetailView: View {
                 // Songs List or Empty State
                 if playlistSongs.isEmpty {
                     VStack(spacing: 12) {
-                        Text("This playlist has no songs yet.")
+                        Text("This playlist has no songs yet.".localized)
                             .font(.custom("Quicksand-Medium", size: 15))
                             .foregroundColor(.secondary)
                             .padding(.top, 24)
@@ -300,7 +300,7 @@ public struct PlaylistDetailView: View {
                         Button {
                             showAddSongsSheet = true
                         } label: {
-                            Text("Browse and Add Songs")
+                            Text("Browse and Add Songs".localized)
                                 .font(.custom("Quicksand-Bold", size: 14))
                                 .foregroundColor(.white)
                                 .padding(.horizontal, 20)
@@ -573,7 +573,7 @@ public struct AddToPlaylistSheet: View {
                     } label: {
                         HStack(spacing: 8) {
                             Image(systemName: "plus.circle.fill")
-                            Text("Create New Playlist")
+                            Text("Create New Playlist".localized)
                                 .font(.custom("Quicksand-Bold", size: 14))
                         }
                         .foregroundColor(.white)
@@ -609,7 +609,7 @@ public struct AddToPlaylistSheet: View {
                                         Text(pl.name)
                                             .font(.custom("Quicksand-Bold", size: 15))
                                             .foregroundColor(.primary)
-                                        Text("\(pl.songIds.count) songs")
+                                        Text("%d songs".localized(pl.songIds.count))
                                             .font(.custom("Quicksand-Regular", size: 12))
                                             .foregroundColor(.secondary)
                                     }
@@ -631,20 +631,20 @@ public struct AddToPlaylistSheet: View {
                     .padding(.bottom, 40)
                 }
             }
-            .navigationTitle("Add to Playlist")
+            .navigationTitle("Add to Playlist".localized)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("Cancel") { dismiss() }
+                    Button("Cancel".localized) { dismiss() }
                         .font(.custom("Quicksand-Bold", size: 15))
                 }
             }
             .onAppear {
                 playlists = DataStore.shared.getAllPlaylists()
             }
-            .alert("New Playlist", isPresented: $showNewPlaylistAlert) {
-                TextField("Playlist Name", text: $newName)
-                Button("Create and Add") {
+            .alert("New Playlist".localized, isPresented: $showNewPlaylistAlert) {
+                TextField("Playlist Name".localized, text: $newName)
+                Button("Create".localized) {
                     let trimmed = newName.trimmingCharacters(in: .whitespaces)
                     if !trimmed.isEmpty {
                         let newPl = DataStore.shared.createPlaylist(name: trimmed)

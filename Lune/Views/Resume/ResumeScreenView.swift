@@ -131,7 +131,7 @@ public struct ResumeScreenView: View {
                 GenreDetailView(genre: item.name)
                     .toolbar {
                         ToolbarItem(placement: .topBarTrailing) {
-                            Button("Done") { selectedGenre = nil }
+                            Button("Done".localized) { selectedGenre = nil }
                                 .font(.custom("Quicksand-Bold", size: 15))
                         }
                     }
@@ -142,7 +142,7 @@ public struct ResumeScreenView: View {
                 AlbumDetailView(album: album)
                     .toolbar {
                         ToolbarItem(placement: .topBarTrailing) {
-                            Button("Done") { selectedAlbum = nil }
+                            Button("Done".localized) { selectedAlbum = nil }
                                 .font(.custom("Quicksand-Bold", size: 15))
                         }
                     }
@@ -191,11 +191,11 @@ public struct ResumeScreenView: View {
                             .font(.system(size: 40))
                             .foregroundColor(colors.primary)
                         
-                        Text("Sua biblioteca está vazia")
+                        Text("Your library is empty".localized)
                             .font(.custom("Quicksand-Bold", size: 18))
                             .foregroundColor(colors.onSecondaryContainer)
                         
-                        Text("Adicione arquivos de áudio (MP3, FLAC, M4A, WAV) do app Arquivos, iCloud ou solte-os na pasta Lune.")
+                        Text("Add audio files (MP3, FLAC, M4A, WAV) from Files app, iCloud, or drop them into Lune folder.".localized)
                             .font(.custom("Quicksand-Regular", size: 13))
                             .foregroundColor(colors.onSecondaryContainer.opacity(0.75))
                             .multilineTextAlignment(.center)
@@ -207,7 +207,7 @@ public struct ResumeScreenView: View {
                         } label: {
                             HStack(spacing: 8) {
                                 Image(systemName: "plus.circle.fill")
-                                Text("Adicionar Músicas / Importar")
+                                Text("Add Audio Files / Import".localized)
                                     .font(.custom("Quicksand-Bold", size: 14))
                             }
                             .foregroundColor(colors.onPrimary)
@@ -276,7 +276,7 @@ public struct ResumeScreenView: View {
                                     .font(.system(size: 10, weight: .bold))
                                     .foregroundColor(colors.onSecondaryContainer.opacity(0.85))
                                 
-                                Text("TOP ARTIST")
+                                Text("TOP ARTIST".localized)
                                     .font(.custom("Quicksand-Bold", size: 9.5))
                                     .tracking(0.6)
                                     .foregroundColor(colors.onSecondaryContainer.opacity(0.85))
@@ -287,7 +287,7 @@ public struct ResumeScreenView: View {
                                 .foregroundColor(colors.onSecondaryContainer)
                                 .lineLimit(1)
                             
-                            Text("\(max(1, topArtistItem.count)) songs")
+                            Text("%d songs".localized(max(1, topArtistItem.count)))
                                 .font(.custom("Quicksand-Regular", size: 11))
                                 .foregroundColor(colors.onSecondaryContainer.opacity(0.70))
                         }
@@ -305,7 +305,7 @@ public struct ResumeScreenView: View {
                                     .font(.system(size: 10, weight: .bold))
                                     .foregroundColor(colors.onSecondaryContainer.opacity(0.85))
                                 
-                                Text("TOP SONG • \(topSongItem.plays) plays")
+                                Text("TOP SONG".localized + " • " + "%d plays".localized(topSongItem.plays))
                                     .font(.custom("Quicksand-Bold", size: 9.5))
                                     .tracking(0.6)
                                     .foregroundColor(colors.onSecondaryContainer.opacity(0.85))
@@ -326,7 +326,7 @@ public struct ResumeScreenView: View {
                                     .font(.system(size: 10, weight: .bold))
                                     .foregroundColor(colors.onSecondaryContainer.opacity(0.85))
                                 
-                                Text("TOP GENRE")
+                                Text("TOP GENRE".localized)
                                     .font(.custom("Quicksand-Bold", size: 9.5))
                                     .tracking(0.6)
                                     .foregroundColor(colors.onSecondaryContainer.opacity(0.85))
@@ -416,7 +416,7 @@ public struct ResumeScreenView: View {
         let colors = settings.resolveColors(for: colorScheme)
         
         return VStack(alignment: .leading, spacing: 10) {
-            Text("Recommendations")
+            Text("Recommendations".localized)
                 .font(.custom("Quicksand-Bold", size: 22))
                 .foregroundColor(colors.onSurface)
                 .padding(.horizontal, 16)
@@ -502,7 +502,7 @@ public struct ResumeScreenView: View {
         let colors = settings.resolveColors(for: colorScheme)
         
         return VStack(alignment: .leading, spacing: 10) {
-            Text("Playlists")
+            Text("Playlists".localized)
                 .font(.custom("Quicksand-Bold", size: 22))
                 .foregroundColor(colors.onSurface)
                 .padding(.horizontal, 16)
@@ -538,7 +538,7 @@ public struct ResumeScreenView: View {
                                         .font(.custom("Quicksand-Bold", size: 14))
                                         .foregroundColor(.white)
                                         .lineLimit(1)
-                                    Text("\(pl.songIds.count) songs")
+                                    Text("%d songs".localized(pl.songIds.count))
                                         .font(.custom("Quicksand-Regular", size: 12))
                                         .foregroundColor(Color.white.opacity(0.75))
                                 }
@@ -562,7 +562,7 @@ public struct ResumeScreenView: View {
         let colors = settings.resolveColors(for: colorScheme)
         
         return VStack(alignment: .leading, spacing: 10) {
-            Text("Artists")
+            Text("Artists".localized)
                 .font(.custom("Quicksand-Bold", size: 22))
                 .foregroundColor(colors.onSurface)
                 .padding(.horizontal, 16)
@@ -609,7 +609,7 @@ public struct ResumeScreenView: View {
         let colors = settings.resolveColors(for: colorScheme)
         
         return VStack(alignment: .leading, spacing: 10) {
-            Text("Genres")
+            Text("Genres".localized)
                 .font(.custom("Quicksand-Bold", size: 22))
                 .foregroundColor(colors.onSurface)
                 .padding(.horizontal, 16)
@@ -658,7 +658,7 @@ public struct ResumeScreenView: View {
         let colors = settings.resolveColors(for: colorScheme)
         
         return VStack(alignment: .leading, spacing: 10) {
-            Text("Recently Added")
+            Text("Recently Added".localized)
                 .font(.custom("Quicksand-Bold", size: 22))
                 .foregroundColor(colors.onSurface)
                 .padding(.horizontal, 16)
@@ -719,14 +719,14 @@ public struct ResumeScreenView: View {
     
     private var topArtistItem: (name: String, count: Int, artworkData: Data?) {
         guard let first = library.artists.first else {
-            return ("Unknown Artist", 0, nil)
+            return ("Unknown Artist".localized, 0, nil)
         }
         return (first.name, first.songCount, first.artworkData)
     }
     
     private var topSongItem: (title: String, plays: Int, artworkData: Data?) {
         guard let first = library.allSongs.first else {
-            return ("No Plays Yet", 0, nil)
+            return ("No Plays Yet".localized, 0, nil)
         }
         return (first.title, 5, first.artworkData)
     }

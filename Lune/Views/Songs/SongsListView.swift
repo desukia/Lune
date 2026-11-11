@@ -16,6 +16,10 @@ public enum SongSortOption: String, CaseIterable, Identifiable {
     case duration = "Duration"
     
     public var id: String { rawValue }
+    
+    public var displayName: String {
+        return rawValue.localized
+    }
 }
 
 @MainActor
@@ -69,23 +73,23 @@ public struct SongsListView: View {
                 m3SongsListHeader(colors: colors)
             } else {
                 HStack {
-                    Text("\(filteredSongs.count) \(filteredSongs.count == 1 ? "track" : "tracks")")
+                    Text("%d tracks".localized(filteredSongs.count))
                         .font(.custom("Quicksand-Bold", size: 13))
                         .foregroundColor(.secondary)
                     
                     Spacer()
                     
                     Menu {
-                        Picker("Sort by", selection: $sortOption) {
+                        Picker("Sort by".localized, selection: $sortOption) {
                             ForEach(SongSortOption.allCases) { opt in
-                                Text(opt.rawValue).tag(opt)
+                                Text(opt.displayName).tag(opt)
                             }
                         }
                     } label: {
                         HStack(spacing: 4) {
                             Image(systemName: "arrow.up.arrow.down")
                                 .font(.system(size: 11))
-                            Text(sortOption.rawValue)
+                            Text(sortOption.displayName)
                                 .font(.custom("Quicksand-Bold", size: 12))
                         }
                         .foregroundColor(colors.primary)
@@ -136,19 +140,19 @@ public struct SongsListView: View {
                 }
             }
         }
-        .searchable(text: $searchText, prompt: "Search title, artist, album...")
+        .searchable(text: $searchText, prompt: Text("Search title, artist, album...".localized))
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Menu {
                     Button {
                         showFileImporter = true
                     } label: {
-                        Label("Import Audio Files", systemImage: "square.and.arrow.down")
+                        Label("Import Audio Files".localized, systemImage: "square.and.arrow.down")
                     }
                     Button {
                         Task { await library.scanLibrary() }
                     } label: {
-                        Label("Rescan Library", systemImage: "arrow.clockwise")
+                        Label("Rescan Library".localized, systemImage: "arrow.clockwise")
                     }
                 } label: {
                     Image(systemName: "ellipsis.circle")
@@ -207,11 +211,11 @@ public struct SongsListView: View {
             Image(systemName: filterFavoritesOnly ? "heart.slash" : "music.note")
                 .font(.system(size: 40))
                 .foregroundColor(.secondary)
-            Text(filterFavoritesOnly ? "No favorite tracks yet" : "No songs found")
+            Text(filterFavoritesOnly ? "No favorite tracks yet".localized : "No songs found".localized)
                 .font(.custom("Quicksand-Bold", size: 16))
                 .foregroundColor(.secondary)
             if !filterFavoritesOnly {
-                Button("Import Audio Files") {
+                Button("Import Audio Files".localized) {
                     showFileImporter = true
                 }
                 .font(.custom("Quicksand-Bold", size: 14))
@@ -263,7 +267,7 @@ public struct SongsListView: View {
                                 .offset(x: player.isPlaying ? 0 : 1.5)
                         )
                     
-                    Text(player.isPlaying ? "Pause" : "Play (\(filteredSongs.count))")
+                    Text(player.isPlaying ? "Pause".localized : "Play".localized + " (\(filteredSongs.count))")
                         .font(.custom("Quicksand-Bold", size: 15))
                         .foregroundColor(colors.onPrimary)
                 }
@@ -277,9 +281,9 @@ public struct SongsListView: View {
             
             // 3. Shuffle / Sort menu button
             Menu {
-                Picker("Sort by", selection: $sortOption) {
+                Picker("Sort by".localized, selection: $sortOption) {
                     ForEach(SongSortOption.allCases) { opt in
-                        Text(opt.rawValue).tag(opt)
+                        Text(opt.displayName).tag(opt)
                     }
                 }
             } label: {

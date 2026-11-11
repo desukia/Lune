@@ -31,8 +31,8 @@ public struct SettingsView: View {
             Form {
 
                 // MARK: - Theme Mode
-                Section(header: Text("Theme").font(.custom("Quicksand-Bold", size: 12))) {
-                    Picker("Theme Mode", selection: $settings.themeMode) {
+                Section(header: Text("Theme".localized).font(.custom("Quicksand-Bold", size: 12))) {
+                    Picker("Theme Mode".localized, selection: $settings.themeMode) {
                         ForEach(AppThemeMode.allCases) { mode in
                             Text(mode.displayName).tag(mode)
                         }
@@ -40,20 +40,20 @@ public struct SettingsView: View {
                 }
                 
                 // MARK: - Player Customization
-                Section(header: Text("Now Playing Player").font(.custom("Quicksand-Bold", size: 12))) {
-                    Picker("Cover Art Shape", selection: $settings.coverShape) {
+                Section(header: Text("Now Playing Player".localized).font(.custom("Quicksand-Bold", size: 12))) {
+                    Picker("Cover Art Shape".localized, selection: $settings.coverShape) {
                         ForEach(PlayerCoverShape.allCases) { shape in
                             Text(shape.name).tag(shape)
                         }
                     }
                     
                     if settings.coverShape == .circle {
-                        Toggle("Vinyl Spin Animation", isOn: $settings.vinylSpin)
+                        Toggle("Vinyl Spin Animation".localized, isOn: $settings.vinylSpin)
                     }
                     
-                    Toggle("Wavy Progress Bar", isOn: $settings.progressBarWave)
+                    Toggle("Wavy Progress Bar".localized, isOn: $settings.progressBarWave)
                     
-                    Picker("Background Blur", selection: $settings.playerBlurMode) {
+                    Picker("Background Blur".localized, selection: $settings.playerBlurMode) {
                         ForEach(PlayerBlurMode.allCases) { mode in
                             Text(mode.name).tag(mode)
                         }
@@ -61,14 +61,14 @@ public struct SettingsView: View {
                 }
                 
                 // MARK: - Audio Features
-                Section(header: Text("Audio & Library").font(.custom("Quicksand-Bold", size: 12))) {
-                    Toggle("Hi-Fi / Hi-Res Badges", isOn: $settings.hifiBadgeEnabled)
+                Section(header: Text("Audio & Library".localized).font(.custom("Quicksand-Bold", size: 12))) {
+                    Toggle("Hi-Fi / Hi-Res Badges".localized, isOn: $settings.hifiBadgeEnabled)
                     
                     Button {
                         showFileImporter = true
                     } label: {
                         HStack {
-                            Text("Import Audio Files / Folders")
+                            Text("Import Audio Files / Folders".localized)
                             Spacer()
                             Image(systemName: "plus.circle")
                         }
@@ -78,7 +78,7 @@ public struct SettingsView: View {
                         Task { await library.scanLibrary() }
                     } label: {
                         HStack {
-                            Text("Rescan Music Library")
+                            Text("Rescan Music Library".localized)
                             Spacer()
                             Image(systemName: "arrow.clockwise")
                         }
@@ -86,11 +86,11 @@ public struct SettingsView: View {
                 }
                 
                 // MARK: - Privacy & AI
-                Section(header: Text("Privacy & On-Device AI").font(.custom("Quicksand-Bold", size: 12))) {
+                Section(header: Text("Privacy & On-Device AI".localized).font(.custom("Quicksand-Bold", size: 12))) {
                     Button(role: .destructive) {
                         showResetAlert = true
                     } label: {
-                        Text("Reset AI Learning & Habit Telemetry")
+                        Text("Reset AI Learning & Habit Telemetry".localized)
                     }
                 }
                 
@@ -98,7 +98,7 @@ public struct SettingsView: View {
                 Section {
                     NavigationLink(destination: AboutView()) {
                         HStack {
-                            Text("About Lune")
+                            Text("About Lune".localized)
                             Spacer()
                             Text("v0.0.1")
                                 .foregroundColor(.secondary)
@@ -106,21 +106,21 @@ public struct SettingsView: View {
                     }
                 }
             }
-            .navigationTitle("Settings")
+            .navigationTitle("Settings".localized)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("Done") { dismiss() }
+                    Button("Done".localized) { dismiss() }
                         .font(.custom("Quicksand-Bold", size: 15))
                 }
             }
-            .alert("Reset AI Telemetry?", isPresented: $showResetAlert) {
-                Button("Reset", role: .destructive) {
+            .alert("Reset AI Telemetry?".localized, isPresented: $showResetAlert) {
+                Button("Reset".localized, role: .destructive) {
                     AiTelemetryStorage.shared.clearAll()
                 }
-                Button("Cancel", role: .cancel) {}
+                Button("Cancel".localized, role: .cancel) {}
             } message: {
-                Text("This will clear all learned listening habits and Markov transitions.")
+                Text("This will clear all learned listening habits and Markov transitions.".localized)
             }
             .fileImporter(
                 isPresented: $showFileImporter,

@@ -18,6 +18,7 @@ public enum ReverbPresetType: String, CaseIterable, Identifiable, Codable {
     case plate = "Plate"
     
     public var id: String { rawValue }
+    public var displayName: String { rawValue.localized }
     
     public var avPreset: AVAudioUnitReverbPreset? {
         switch self {

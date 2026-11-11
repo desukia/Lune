@@ -339,13 +339,13 @@ public final class LuneAiEngine: ObservableObject {
             generated.append(
                 AiMix(
                     id: "ai_daily_flow",
-                    title: "Daily Flow",
-                    subtitle: "Essential tracks with harmonic flow",
+                    title: "Daily Flow".localized,
+                    subtitle: "Essential tracks with harmonic flow".localized,
                     category: .dailyFlow,
                     songs: generateSmartShuffle(Array(daily)),
                     gradientColors: [Color(hex: 0x6366F1), Color(hex: 0x8B5CF6), Color(hex: 0xEC4899)],
                     iconName: "sparkles",
-                    description: "Blends your real-time affinity with Markov transitions."
+                    description: "Blends your real-time affinity with Markov transitions.".localized
                 )
             )
         }
@@ -356,13 +356,13 @@ public final class LuneAiEngine: ObservableObject {
             generated.append(
                 AiMix(
                     id: "ai_discovery_flow",
-                    title: "Discovery Mode",
-                    subtitle: "Favorites blended with unheard gems",
+                    title: "Discovery Mode".localized,
+                    subtitle: "Favorites blended with unheard gems".localized,
                     category: .discovery,
                     songs: Array(discovery),
                     gradientColors: [Color(hex: 0x0D9488), Color(hex: 0x059669), Color(hex: 0x10B981)],
                     iconName: "safari",
-                    description: "Explore hidden songs mathematically kindred to your tastes."
+                    description: "Explore hidden songs mathematically kindred to your tastes.".localized
                 )
             )
         }
@@ -375,13 +375,13 @@ public final class LuneAiEngine: ObservableObject {
             generated.append(
                 AiMix(
                     id: "ai_energy_boost",
-                    title: "Energy Boost",
-                    subtitle: "High tempo beats to motivate and workout",
+                    title: "Energy Boost".localized,
+                    subtitle: "High tempo beats to motivate and workout".localized,
                     category: .energy,
                     songs: generateSmartShuffle(Array(energyTracks)),
                     gradientColors: [Color(hex: 0xF97316), Color(hex: 0xEF4444), Color(hex: 0xEC4899)],
                     iconName: "bolt.fill",
-                    description: "Vibrant tempos and dynamic momentum from your collection."
+                    description: "Vibrant tempos and dynamic momentum from your collection.".localized
                 )
             )
         }
@@ -394,13 +394,13 @@ public final class LuneAiEngine: ObservableObject {
             generated.append(
                 AiMix(
                     id: "ai_chill_flow",
-                    title: "Chill & Relax",
-                    subtitle: "Smooth textures to unwind and focus",
+                    title: "Chill & Relax".localized,
+                    subtitle: "Smooth textures to unwind and focus".localized,
                     category: .chill,
                     songs: generateSmartShuffle(Array(chillTracks)),
                     gradientColors: [Color(hex: 0x06B6D4), Color(hex: 0x3B82F6), Color(hex: 0x6366F1)],
                     iconName: "leaf.fill",
-                    description: "Mellow acoustic melodies for calm and concentration."
+                    description: "Mellow acoustic melodies for calm and concentration.".localized
                 )
             )
         }
@@ -410,26 +410,26 @@ public final class LuneAiEngine: ObservableObject {
         let timeSub: String
         let timeColors: [Color]
         if isWeekend {
-            timeName = "Weekend Mix"
-            timeSub = "Enjoy your weekend soundtrack"
+            timeName = "Weekend Mix".localized
+            timeSub = "Enjoy your weekend soundtrack".localized
             timeColors = [Color(hex: 0xEC4899), Color(hex: 0x8B5CF6), Color(hex: 0x3B82F6)]
         } else {
             switch currentTime {
             case .morning:
-                timeName = "Morning Mix"
-                timeSub = "Start your day with the best selection"
+                timeName = "Morning Mix".localized
+                timeSub = "Start your day with the best selection".localized
                 timeColors = [Color(hex: 0xF59E0B), Color(hex: 0x10B981), Color(hex: 0x06B6D4)]
             case .afternoon:
-                timeName = "Afternoon Mix"
-                timeSub = "Perfect soundtrack for your workday"
+                timeName = "Afternoon Mix".localized
+                timeSub = "Perfect soundtrack for your workday".localized
                 timeColors = [Color(hex: 0x3B82F6), Color(hex: 0x8B5CF6), Color(hex: 0x06B6D4)]
             case .evening:
-                timeName = "Evening Mix"
-                timeSub = "Warm sunset tunes to unwind"
+                timeName = "Evening Mix".localized
+                timeSub = "Warm sunset tunes to unwind".localized
                 timeColors = [Color(hex: 0xF97316), Color(hex: 0x8B5CF6), Color(hex: 0x4F46E5)]
             case .night:
-                timeName = "Night Mix"
-                timeSub = "Immersive ambient sounds for the night"
+                timeName = "Night Mix".localized
+                timeSub = "Immersive ambient sounds for the night".localized
                 timeColors = [Color(hex: 0x1E1B4B), Color(hex: 0x312E81), Color(hex: 0x4C1D95)]
             }
         }
@@ -449,7 +449,7 @@ public final class LuneAiEngine: ObservableObject {
                     songs: generateSmartShuffle(Array(timeSongs)),
                     gradientColors: timeColors,
                     iconName: currentTime == .night ? "moon.stars.fill" : "sun.max.fill",
-                    description: "Adapts to your current temporal habits."
+                    description: "Adapts to your current temporal habits.".localized
                 )
             )
         }
@@ -465,13 +465,13 @@ public final class LuneAiEngine: ObservableObject {
             generated.append(
                 AiMix(
                     id: "ai_forgotten_gems",
-                    title: "Forgotten Gems",
-                    subtitle: "Beloved tracks you haven't played in a while",
+                    title: "Forgotten Gems".localized,
+                    subtitle: "Beloved tracks you haven't played in a while".localized,
                     category: .forgottenGems,
                     songs: Array(forgotten),
                     gradientColors: [Color(hex: 0x10B981), Color(hex: 0x059669), Color(hex: 0x047857)],
                     iconName: "clock.arrow.circlepath",
-                    description: "High affinity tracks waiting to be rediscovered."
+                    description: "High affinity tracks waiting to be rediscovered.".localized
                 )
             )
         }
@@ -482,13 +482,13 @@ public final class LuneAiEngine: ObservableObject {
             generated.append(
                 AiMix(
                     id: "ai_acoustic_live",
-                    title: "Acoustic & Live",
-                    subtitle: "Unplugged sessions and intimate concerts",
+                    title: "Acoustic & Live".localized,
+                    subtitle: "Unplugged sessions and intimate concerts".localized,
                     category: .acousticLive,
                     songs: generateSmartShuffle(acousticLive),
                     gradientColors: [Color(hex: 0xD97706), Color(hex: 0xB45309), Color(hex: 0x78350F)],
                     iconName: "mic.fill",
-                    description: "Intelligent acoustic and live recording detection."
+                    description: "Intelligent acoustic and live recording detection.".localized
                 )
             )
         }
@@ -507,13 +507,13 @@ public final class LuneAiEngine: ObservableObject {
                 generated.append(
                     AiMix(
                         id: "ai_artist_\(LuneIdGenerator.stableId(for: top.key))",
-                        title: "Radio: \(top.key)",
-                        subtitle: "Best of \(top.key) & kindred artists",
+                        title: "Radio: %@".localized(top.key),
+                        subtitle: "Best of %@ & kindred artists".localized(top.key),
                         category: .artistSpotlight,
                         songs: generateSmartShuffle(spotlight),
                         gradientColors: [Color(hex: 0xE11D48), Color(hex: 0xBE123C), Color(hex: 0x881337)],
                         iconName: "person.crop.circle.fill",
-                        description: "Continuous mix around your top artist."
+                        description: "Continuous mix around your top artist.".localized
                     )
                 )
             }

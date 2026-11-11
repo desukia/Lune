@@ -17,9 +17,9 @@ public enum PlayerCoverShape: Int, CaseIterable, Identifiable, Codable {
     public var id: Int { rawValue }
     public var name: String {
         switch self {
-        case .rounded: return "Rounded"
-        case .square: return "Square"
-        case .circle: return "Vinyl Circle"
+        case .rounded: return "Squircle".localized
+        case .square: return "Square".localized
+        case .circle: return "Vinyl".localized
         }
     }
 }
@@ -32,9 +32,9 @@ public enum PlayerBlurMode: Int, CaseIterable, Identifiable, Codable {
     public var id: Int { rawValue }
     public var name: String {
         switch self {
-        case .dark: return "Dark Defocus"
-        case .light: return "Light Frosted"
-        case .cinematic: return "Cinematic Vibrant"
+        case .dark: return "Dark".localized
+        case .light: return "Light".localized
+        case .cinematic: return "Cinematic".localized
         }
     }
 }

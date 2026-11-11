@@ -104,15 +104,15 @@ public struct NowPlayingView: View {
                 AddToPlaylistSheet(song: song)
             }
         }
-        .confirmationDialog("Sleep Timer", isPresented: $showSleepTimer, titleVisibility: .visible) {
-            Button("15 Minutes") { player.setSleepTimer(minutes: 15) }
-            Button("30 Minutes") { player.setSleepTimer(minutes: 30) }
-            Button("45 Minutes") { player.setSleepTimer(minutes: 45) }
-            Button("60 Minutes") { player.setSleepTimer(minutes: 60) }
+        .confirmationDialog("Sleep Timer".localized, isPresented: $showSleepTimer, titleVisibility: .visible) {
+            Button("15 Minutes".localized) { player.setSleepTimer(minutes: 15) }
+            Button("30 Minutes".localized) { player.setSleepTimer(minutes: 30) }
+            Button("45 Minutes".localized) { player.setSleepTimer(minutes: 45) }
+            Button("60 Minutes".localized) { player.setSleepTimer(minutes: 60) }
             if player.sleepTimerMinutesRemaining != nil {
-                Button("Turn Off Timer", role: .destructive) { player.cancelSleepTimer() }
+                Button("Turn Off Timer".localized, role: .destructive) { player.cancelSleepTimer() }
             }
-            Button("Cancel", role: .cancel) {}
+            Button("Cancel".localized, role: .cancel) {}
         }
         .onAppear {
             if let song = player.currentSong {
@@ -335,12 +335,12 @@ public struct NowPlayingView: View {
             
             // Middle: Left-aligned "Playing from" & Album/Category
             VStack(alignment: .leading, spacing: 2) {
-                Text(activeMode == .lyrics ? "LIVE LYRICS" : "PLAYING FROM")
+                Text(activeMode == .lyrics ? "LIVE LYRICS".localized : "PLAYING FROM".localized)
                     .font(.custom("Quicksand-Bold", size: 10))
                     .tracking(1.0)
                     .foregroundColor(colors.onSurfaceVariant)
                 
-                Text(player.currentSong?.album.isEmpty == false ? player.currentSong!.album : "All Songs")
+                Text(player.currentSong?.album.isEmpty == false ? player.currentSong!.album : "All Songs".localized)
                     .font(.custom("Quicksand-Bold", size: 16))
                     .foregroundColor(colors.onSurface)
                     .lineLimit(1)
@@ -451,14 +451,14 @@ public struct NowPlayingView: View {
         return HStack(alignment: .center, spacing: 12) {
             VStack(alignment: .leading, spacing: 6) {
                 // Song Title
-                Text(player.currentSong?.title ?? "No Song Playing")
+                Text(player.currentSong?.title ?? "No Song Playing".localized)
                     .font(.custom("Quicksand-Bold", size: 24))
                     .foregroundColor(colors.onSurface)
                     .lineLimit(1)
                 
                 // Chips Row (Artist, Hi-Fi, Format)
                 HStack(spacing: 6) {
-                    Text(player.currentSong?.artist ?? "Unknown Artist")
+                    Text(player.currentSong?.artist ?? "Unknown Artist".localized)
                         .font(.custom("Quicksand-Bold", size: 12))
                         .foregroundColor(colors.onSurface)
                         .padding(.horizontal, 12)
@@ -630,7 +630,7 @@ public struct NowPlayingView: View {
                                 .offset(x: player.isPlaying ? 0 : 2)
                             
                             if showPlayStateLabel {
-                                Text(player.isPlaying ? "Play" : "Pause")
+                                Text(player.isPlaying ? "Play".localized : "Pause".localized)
                                     .font(.custom("Quicksand-Bold", size: 16))
                                     .foregroundColor(playBtnFg)
                                     .transition(.opacity.combined(with: .scale(scale: 0.85)))
@@ -789,12 +789,12 @@ public struct NowPlayingView: View {
             HStack(spacing: 8) {
                 VStack(alignment: .leading, spacing: 2) {
                     HStack(spacing: 6) {
-                        Text("Live Lyrics")
+                        Text("Live Lyrics".localized)
                             .font(.custom("Quicksand-Bold", size: 17))
                             .foregroundColor(colors.onSurface)
                         
                         if lyricsManager.isSynced {
-                            Text("SYNCED")
+                            Text("SYNCED".localized)
                                 .font(.custom("Quicksand-Bold", size: 8.5))
                                 .foregroundColor(isDark ? Color.white.opacity(0.90) : Color.black.opacity(0.85))
                                 .padding(.horizontal, 6)
@@ -807,7 +807,7 @@ public struct NowPlayingView: View {
                     }
                     
                     if lyricsOffsetMs != 0 {
-                        Text(String(format: "Offset: %+.1fs", lyricsOffsetMs / 1000.0))
+                        Text("Offset: %+.1fs".localized(lyricsOffsetMs / 1000.0))
                             .font(.custom("Quicksand-Medium", size: 11))
                             .foregroundColor(colors.onSurfaceVariant)
                     }
@@ -929,7 +929,7 @@ public struct NowPlayingView: View {
                     ProgressView()
                         .tint(colors.onSurface)
                         .scaleEffect(1.1)
-                    Text("Searching lyrics...")
+                    Text("Searching lyrics...".localized)
                         .font(.custom("Quicksand-Bold", size: 13))
                         .foregroundColor(colors.onSurfaceVariant)
                 }
@@ -939,7 +939,7 @@ public struct NowPlayingView: View {
                     Image(systemName: "quote.bubble")
                         .font(.system(size: 34))
                         .foregroundColor(colors.onSurfaceVariant.opacity(0.50))
-                    Text("No lyrics available")
+                    Text("No lyrics available".localized)
                         .font(.custom("Quicksand-Bold", size: 15))
                         .foregroundColor(colors.onSurface)
                     Button {
@@ -947,7 +947,7 @@ public struct NowPlayingView: View {
                             Task { await lyricsManager.fetchLyrics(for: s) }
                         }
                     } label: {
-                        Text("Search Again")
+                        Text("Search Again".localized)
                             .font(.custom("Quicksand-Bold", size: 12))
                             .foregroundColor(isDark ? Color.black : Color.white)
                             .padding(.horizontal, 16)
@@ -1067,12 +1067,12 @@ public struct NowPlayingView: View {
             // Header Context Pill (Album / Lyrics)
             VStack(spacing: 2) {
                 if activeMode == .lyrics {
-                    Text("LYRICS")
+                    Text("LIVE LYRICS".localized)
                         .font(.custom("Quicksand-Bold", size: 11))
                         .foregroundColor(.white.opacity(0.70))
                         .tracking(1.4)
                 } else if let song = player.currentSong {
-                    Text(song.album.isEmpty ? "PLAYING FROM LIBRARY" : song.album.uppercased())
+                    Text(song.album.isEmpty ? "PLAYING FROM LIBRARY".localized : song.album.uppercased())
                         .font(.custom("Quicksand-Bold", size: 10))
                         .foregroundColor(.white.opacity(0.60))
                         .tracking(1.2)
@@ -1089,35 +1089,35 @@ public struct NowPlayingView: View {
                     Button {
                         library.toggleFavorite(for: song)
                     } label: {
-                        Label(isFav ? "Remove from Favorites" : "Add to Favorites", systemImage: isFav ? "heart.slash" : "heart")
+                        Label(isFav ? "Remove from Favorites".localized : "Add to Favorites".localized, systemImage: isFav ? "heart.slash" : "heart")
                     }
                 }
                 
                 Button {
                     showEqualizer = true
                 } label: {
-                    Label("Equalizer & Sound FX", systemImage: "slider.vertical.3")
+                    Label("Equalizer & Sound FX".localized, systemImage: "slider.vertical.3")
                 }
                 
                 Button {
                     showSleepTimer = true
                 } label: {
-                    Label(player.sleepTimerMinutesRemaining != nil ? "Sleep Timer: \(player.sleepTimerMinutesRemaining!)m remaining" : "Sleep Timer", systemImage: "moon.zzz")
+                    Label(player.sleepTimerMinutesRemaining != nil ? "\("Sleep Timer".localized): \(player.sleepTimerMinutesRemaining!)m" : "Sleep Timer".localized, systemImage: "moon.zzz")
                 }
                 
                 Divider()
                 
                 if let song = player.currentSong {
-                    Section("Audio Fidelity") {
-                        Text("Format: \(song.format.uppercased())")
+                    Section("Audio Fidelity".localized) {
+                        Text("Format: %@".localized(song.format.uppercased()))
                         if let sr = song.sampleRate {
-                            Text(String(format: "Sample Rate: %.1f kHz", Double(sr) / 1000.0))
+                            Text("Sample Rate: %.1f kHz".localized(Double(sr) / 1000.0))
                         }
                         if let bd = song.bitDepth {
-                            Text("Depth: \(bd)-bit")
+                            Text("Depth: %d-bit".localized(bd))
                         }
                         if let br = song.bitrate, br > 0 {
-                            Text("Bitrate: \(br) kbps")
+                            Text("Bitrate: %d kbps".localized(br))
                         }
                     }
                 }
@@ -1181,19 +1181,19 @@ public struct NowPlayingView: View {
             // Track Info Row: Title, Artist, Lossless Badge, and Heart
             HStack(alignment: .center, spacing: 14) {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(player.currentSong?.title ?? "No Song Playing")
+                    Text(player.currentSong?.title ?? "No Song Playing".localized)
                         .font(.custom("Quicksand-Bold", size: isCompact ? 20 : 22))
                         .foregroundColor(.white)
                         .lineLimit(1)
                     
                     HStack(spacing: 8) {
-                        Text(player.currentSong?.artist ?? "Select a track to play")
+                        Text(player.currentSong?.artist ?? "Select a track to play".localized)
                             .font(.custom("Quicksand-Medium", size: isCompact ? 14 : 16))
                             .foregroundColor(.white.opacity(0.65))
                             .lineLimit(1)
                         
                         if let song = player.currentSong {
-                            Text(song.isHiRes ? "HI-RES LOSSLESS" : "LOSSLESS")
+                            Text(song.isHiRes ? "HI-RES LOSSLESS".localized : "LOSSLESS".localized)
                                 .font(.system(size: 8, weight: .bold))
                                 .foregroundColor(.white.opacity(0.70))
                                 .padding(.horizontal, 5)
@@ -1251,19 +1251,19 @@ public struct NowPlayingView: View {
                 }
                 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(player.currentSong?.title ?? "Unknown Title")
+                    Text(player.currentSong?.title ?? "Unknown Title".localized)
                         .font(.custom("Quicksand-Bold", size: 16))
                         .foregroundColor(.white)
                         .lineLimit(1)
                     
                     HStack(spacing: 6) {
-                        Text(player.currentSong?.artist ?? "Unknown Artist")
+                        Text(player.currentSong?.artist ?? "Unknown Artist".localized)
                             .font(.custom("Quicksand-Medium", size: 13))
                             .foregroundColor(.white.opacity(0.65))
                             .lineLimit(1)
                         
                         if lyricsManager.isSynced {
-                            Text("SYNCED")
+                            Text("SYNCED".localized)
                                 .font(.system(size: 8, weight: .bold))
                                 .foregroundColor(.white.opacity(0.75))
                                 .padding(.horizontal, 5)
@@ -1299,7 +1299,7 @@ public struct NowPlayingView: View {
                     ProgressView()
                         .progressViewStyle(CircularProgressViewStyle(tint: .white))
                         .scaleEffect(1.2)
-                    Text("Fetching lyrics from Vagalume...")
+                    Text("Fetching lyrics from Vagalume...".localized)
                         .font(.custom("Quicksand-Bold", size: 14))
                         .foregroundColor(.white.opacity(0.75))
                 }
@@ -1310,7 +1310,7 @@ public struct NowPlayingView: View {
                     Image(systemName: "quote.bubble")
                         .font(.system(size: 42))
                         .foregroundColor(.white.opacity(0.40))
-                    Text("No lyrics available")
+                    Text("No lyrics available".localized)
                         .font(.custom("Quicksand-Bold", size: 17))
                         .foregroundColor(.white)
                     Button {
@@ -1318,7 +1318,7 @@ public struct NowPlayingView: View {
                             Task { await lyricsManager.fetchLyrics(for: song) }
                         }
                     } label: {
-                        Label("Search Again", systemImage: "arrow.clockwise")
+                        Label("Search Again".localized, systemImage: "arrow.clockwise")
                             .font(.custom("Quicksand-Bold", size: 13))
                             .foregroundColor(.white)
                             .padding(.horizontal, 18)

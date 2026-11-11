@@ -28,7 +28,7 @@ public struct QueueView: View {
     public var body: some View {
         NavigationStack {
             List {
-                Section(header: Text("Currently Playing").font(.custom("Quicksand-Bold", size: 13))) {
+                Section(header: Text("Currently Playing".localized).font(.custom("Quicksand-Bold", size: 13))) {
                     if let current = player.currentSong {
                         HStack(spacing: 12) {
                             if let data = current.artworkData, let img = UIImage(data: data) {
@@ -54,7 +54,7 @@ public struct QueueView: View {
                     }
                 }
                 
-                Section(header: Text("Up Next (\(max(0, player.queue.count - player.currentIndex - 1)))").font(.custom("Quicksand-Bold", size: 13))) {
+                Section(header: Text("Up Next (%d)".localized(max(0, player.queue.count - player.currentIndex - 1))).font(.custom("Quicksand-Bold", size: 13))) {
                     ForEach(Array(player.queue.enumerated()), id: \.element.id) { index, song in
                         if index > player.currentIndex {
                             HStack(spacing: 12) {
@@ -86,11 +86,11 @@ public struct QueueView: View {
                     }
                 }
             }
-            .navigationTitle("Play Queue")
+            .navigationTitle("Play Queue".localized)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
-                    Button("Done") { dismiss() }
+                    Button("Done".localized) { dismiss() }
                         .font(.custom("Quicksand-Bold", size: 15))
                 }
                 ToolbarItem(placement: .topBarTrailing) {

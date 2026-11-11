@@ -105,14 +105,14 @@ public struct FoldersView: View {
                     HStack(spacing: 4) {
                         Image(systemName: "chevron.left")
                             .font(.system(size: 15, weight: .bold))
-                        Text(currentPath.last ?? "Folders")
+                        Text(currentPath.last ?? "Folders".localized)
                             .font(.custom("Quicksand-Bold", size: 16))
                             .lineLimit(1)
                     }
                     .foregroundColor(colors.primary)
                 }
             } else {
-                Text("Folder Browser")
+                Text("Folder Browser".localized)
                     .font(.custom("Quicksand-Bold", size: 18))
                     .foregroundColor(colors.onSurface)
             }
@@ -127,7 +127,7 @@ public struct FoldersView: View {
                 HStack(spacing: 6) {
                     Image(systemName: "square.and.arrow.down")
                         .font(.system(size: 13, weight: .semibold))
-                    Text("Import")
+                    Text("Import".localized)
                         .font(.custom("Quicksand-Bold", size: 13))
                 }
                 .foregroundColor(colors.onPrimary)
@@ -163,11 +163,11 @@ public struct FoldersView: View {
                         )
                     
                     VStack(alignment: .leading, spacing: 3) {
-                        Text("Internal Storage")
+                        Text("Internal Storage".localized)
                             .font(.custom("Quicksand-Bold", size: 16))
                             .foregroundColor(colors.onSurface)
                         
-                        Text("App Sandbox • \(library.allSongs.count) audio tracks")
+                        Text("App Sandbox • %d audio tracks".localized(library.allSongs.count))
                             .font(.custom("Quicksand-Regular", size: 12))
                             .foregroundColor(colors.onSurfaceVariant)
                     }
@@ -200,11 +200,11 @@ public struct FoldersView: View {
                         )
                     
                     VStack(alignment: .leading, spacing: 3) {
-                        Text("Files & Cloud Storage")
+                        Text("Files & Cloud Storage".localized)
                             .font(.custom("Quicksand-Bold", size: 16))
                             .foregroundColor(colors.onSurface)
                         
-                        Text("Import from iCloud Drive or external storage")
+                        Text("Import from iCloud Drive or external storage".localized)
                             .font(.custom("Quicksand-Regular", size: 12))
                             .foregroundColor(colors.onSurfaceVariant)
                     }
@@ -226,7 +226,7 @@ public struct FoldersView: View {
     // MARK: - 3. All Folders Section
     private func allFoldersSection(colors: LuneColorScheme) -> some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("Directories")
+            Text("Directories".localized)
                 .font(.custom("Quicksand-Bold", size: 14))
                 .foregroundColor(colors.primary)
                 .padding(.top, 12)
@@ -256,7 +256,7 @@ public struct FoldersView: View {
                                 .foregroundColor(colors.onSurface)
                                 .lineLimit(1)
                             
-                            Text("\(songs.count) audio files")
+                            Text("%d audio files".localized(songs.count))
                                 .font(.custom("Quicksand-Regular", size: 12))
                                 .foregroundColor(colors.onSurfaceVariant)
                         }
@@ -290,14 +290,14 @@ public struct FoldersView: View {
                         .foregroundColor(colors.onSurfaceVariant.opacity(0.40))
                         .padding(.top, 40)
                     
-                    Text("No songs in this folder")
+                    Text("No songs in this folder".localized)
                         .font(.custom("Quicksand-Bold", size: 16))
                         .foregroundColor(colors.onSurfaceVariant)
                     
                     Button {
                         showFileImporter = true
                     } label: {
-                        Text("Add Audio Files")
+                        Text("Add Audio Files".localized)
                             .font(.custom("Quicksand-Bold", size: 13))
                             .foregroundColor(colors.onPrimary)
                             .padding(.horizontal, 18)

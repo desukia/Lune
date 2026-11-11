@@ -27,15 +27,15 @@ public enum NavigationTab: String, CaseIterable, Identifiable {
     
     public var title: String {
         switch self {
-        case .resume: return "Resume"
-        case .mixes: return "AI Mixes"
-        case .songs: return "All Songs"
-        case .favorites: return "Favorites"
-        case .albums: return "Albums"
-        case .artists: return "Artists"
-        case .genres: return "Genres"
-        case .playlists: return "Playlists"
-        case .folders: return "Folders"
+        case .resume: return "Resume".localized
+        case .mixes: return "AI Mixes".localized
+        case .songs: return "All Songs".localized
+        case .favorites: return "Favorites".localized
+        case .albums: return "Albums".localized
+        case .artists: return "Artists".localized
+        case .genres: return "Genres".localized
+        case .playlists: return "Playlists".localized
+        case .folders: return "Folders".localized
         }
     }
     
@@ -255,7 +255,7 @@ public struct UnifiedHeaderPill: View {
                 onShowSearch()
             } label: {
                 HStack(spacing: 8) {
-                    Text("Search")
+                    Text("Search".localized)
                         .font(.custom("Quicksand-Medium", size: isM3 ? 14 : 13))
                         .foregroundColor(isM3 ? colors.onSurfaceVariant : .secondary)
                     
@@ -402,11 +402,11 @@ public struct SectionMenuSheet: View {
                 .padding(.horizontal, 18)
                 .padding(.vertical, 16)
             }
-            .navigationTitle("Sections")
+            .navigationTitle("Sections".localized)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("Done") {
+                    Button("Done".localized) {
                         dismiss()
                     }
                     .font(.custom("Quicksand-Bold", size: 15))
@@ -420,15 +420,15 @@ public struct SectionMenuSheet: View {
     
     private func subtitle(for tab: NavigationTab) -> String {
         switch tab {
-        case .resume: return "Dashboard & recent activity"
-        case .mixes: return "8 On-Device AI playlists"
-        case .songs: return "\(library.allSongs.count) local tracks"
-        case .favorites: return "\(library.favoriteSongs.count) favorite songs"
-        case .albums: return "\(library.albums.count) albums"
-        case .artists: return "\(library.artists.count) artists"
-        case .genres: return "\(library.genres.count) genres"
-        case .playlists: return "\(library.playlists.count) user playlists"
-        case .folders: return "\(library.folders.count) directories"
+        case .resume: return "Dashboard & recent activity".localized
+        case .mixes: return "8 On-Device AI playlists".localized
+        case .songs: return "%d local tracks".localized(library.allSongs.count)
+        case .favorites: return "%d favorite songs".localized(library.favoriteSongs.count)
+        case .albums: return "%d albums".localized(library.albums.count)
+        case .artists: return "%d artists".localized(library.artists.count)
+        case .genres: return "%d genres".localized(library.genres.count)
+        case .playlists: return "%d user playlists".localized(library.playlists.count)
+        case .folders: return "%d directories".localized(library.folders.count)
         }
     }
 }
@@ -460,7 +460,7 @@ public struct SearchSheetView: View {
                         .font(.system(size: 16, weight: .semibold))
                         .foregroundColor(primaryColor)
                     
-                    TextField("Search songs, artists, albums...", text: $query)
+                    TextField("Search songs, artists, albums...".localized, text: $query)
                         .font(.custom("Quicksand-Regular", size: 15))
                         .autocorrectionDisabled()
                     
@@ -486,7 +486,7 @@ public struct SearchSheetView: View {
                         Image(systemName: "music.note.magnifyingglass")
                             .font(.system(size: 48))
                             .foregroundColor(.secondary.opacity(0.6))
-                        Text(query.isEmpty ? "Search your library" : "No results for \"\(query)\"")
+                        Text(query.isEmpty ? "Search your library".localized : "No results for \"%@\"".localized(query))
                             .font(.custom("Quicksand-Bold", size: 16))
                             .foregroundColor(.secondary)
                         Spacer()
@@ -532,11 +532,11 @@ public struct SearchSheetView: View {
                     .listStyle(.plain)
                 }
             }
-            .navigationTitle("Search")
+            .navigationTitle("Search".localized)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("Close") {
+                    Button("Close".localized) {
                         dismiss()
                     }
                     .font(.custom("Quicksand-Bold", size: 15))

@@ -41,11 +41,11 @@ public struct AboutView: View {
                         .padding(.top, 16)
                     
                     // Version
-                    Text("Version 0.0.1")
+                    Text("Version 0.0.1".localized)
                         .font(.custom("Quicksand-Bold", size: 24))
                         .foregroundColor(colors.primary)
                     
-                    Text("License: GPLv3")
+                    Text("License: GPLv3".localized)
                         .font(.custom("Quicksand-SemiBold", size: 14))
                         .foregroundColor(colors.onSurface.opacity(0.70))
                 }
@@ -57,7 +57,7 @@ public struct AboutView: View {
                         HStack(spacing: 6) {
                             Image(systemName: "chevron.left.forwardslash.chevron.right")
                                 .font(.system(size: 13, weight: .bold))
-                            Text("Github")
+                            Text("Github".localized)
                                 .font(.custom("Quicksand-Bold", size: 14))
                                 .lineLimit(1)
                         }
@@ -73,7 +73,7 @@ public struct AboutView: View {
                         HStack(spacing: 6) {
                             Image(systemName: "globe")
                                 .font(.system(size: 14, weight: .medium))
-                            Text("Website")
+                            Text("Website".localized)
                                 .font(.custom("Quicksand-Bold", size: 14))
                                 .lineLimit(1)
                         }
@@ -92,7 +92,7 @@ public struct AboutView: View {
                         HStack(spacing: 6) {
                             Image(systemName: "cup.and.saucer.fill")
                                 .font(.system(size: 13, weight: .bold))
-                            Text("Donate")
+                            Text("Donate".localized)
                                 .font(.custom("Quicksand-Bold", size: 14))
                                 .lineLimit(1)
                         }
@@ -109,7 +109,7 @@ public struct AboutView: View {
                 VStack(alignment: .leading, spacing: 18) {
                     // App Creator (Desukia)
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("App Creator")
+                        Text("App Creator".localized)
                             .font(.custom("Quicksand-Bold", size: 13))
                             .foregroundColor(colors.secondary)
                             .textCase(.uppercase)
@@ -118,7 +118,7 @@ public struct AboutView: View {
                             .font(.custom("Quicksand-Bold", size: 17))
                             .foregroundColor(colors.onSurface)
                         
-                        Text("Creator and developer of Lune for iOS")
+                        Text("Creator and developer of Lune for iOS".localized)
                             .font(.custom("Quicksand-Regular", size: 14))
                             .foregroundColor(colors.onSurface.opacity(0.75))
                     }
@@ -128,7 +128,7 @@ public struct AboutView: View {
                     
                     // Brand Creator (MrDemonc)
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("Lune Brand")
+                        Text("Lune Brand".localized)
                             .font(.custom("Quicksand-Bold", size: 13))
                             .foregroundColor(colors.secondary)
                             .textCase(.uppercase)
@@ -137,7 +137,7 @@ public struct AboutView: View {
                             .font(.custom("Quicksand-Bold", size: 17))
                             .foregroundColor(colors.onSurface)
                         
-                        Text("Creator of the Lune brand")
+                        Text("Creator of the Lune brand".localized)
                             .font(.custom("Quicksand-Regular", size: 14))
                             .foregroundColor(colors.onSurface.opacity(0.75))
                     }
@@ -147,13 +147,13 @@ public struct AboutView: View {
                     
                     // Typography License
                     VStack(alignment: .leading, spacing: 10) {
-                        Text("Typography")
+                        Text("Typography".localized)
                             .font(.custom("Quicksand-Bold", size: 13))
                             .foregroundColor(colors.secondary)
                             .textCase(.uppercase)
                         
                         libraryRow(
-                            name: "Quicksand Font",
+                            name: "Quicksand Font".localized,
                             description: "Quicksand is a sans-serif typeface designed by Andrew Paglinawan.\nLicense: SIL Open Font License, 1.1",
                             colors: colors
                         )
@@ -165,7 +165,7 @@ public struct AboutView: View {
             }
         }
         .background(colors.background.ignoresSafeArea())
-        .navigationTitle("About")
+        .navigationTitle("About".localized)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
@@ -206,7 +206,7 @@ public struct AboutView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 16) {
-                    Text("Support the Project")
+                    Text("Support the Project".localized)
                         .font(.custom("Quicksand-Bold", size: 22))
                         .foregroundColor(colors.onSurface)
                         .padding(.top, 16)
@@ -253,7 +253,7 @@ public struct AboutView: View {
                     // Monero Address Box
                     if showMonero {
                         VStack(alignment: .leading, spacing: 10) {
-                            Text("Monero Address:")
+                            Text("Monero Address:".localized)
                                 .font(.custom("Quicksand-Bold", size: 12))
                                 .foregroundColor(colors.secondary)
                                 .textCase(.uppercase)

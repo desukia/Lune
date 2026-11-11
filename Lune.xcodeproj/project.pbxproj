@@ -51,6 +51,7 @@
 		930D80ADB7A06B4C7CA3441B /* SettingsView.swift in Sources/Resources */ = {isa = PBXBuildFile; fileRef = C64C950D89C83BD929C28F1E /* SettingsView.swift */; };
 		273E2C8785CED01A712021E4 /* SongRowView.swift in Sources/Resources */ = {isa = PBXBuildFile; fileRef = 5600201DAD2ED1A28479F7C4 /* SongRowView.swift */; };
 		5543232CF7CFE1C78F829DA6 /* SongsListView.swift in Sources/Resources */ = {isa = PBXBuildFile; fileRef = A635814A235951EAE7AA949C /* SongsListView.swift */; };
+		LOC000000000000000000014 /* LuneLocalization.swift in Sources */ = {isa = PBXBuildFile; fileRef = LOC000000000000000000013 /* LuneLocalization.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -64,6 +65,8 @@
 		LOC000000000000000000009 /* pt-BR */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "pt-BR"; path = "Resources/pt-BR.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		LOC000000000000000000010 /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = "Resources/ru.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		LOC000000000000000000011 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "Resources/zh-Hans.lproj/Localizable.strings"; sourceTree = "<group>"; };
+		LOC000000000000000000012 /* pt */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = pt; path = "Resources/pt.lproj/Localizable.strings"; sourceTree = "<group>"; };
+		LOC000000000000000000013 /* LuneLocalization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "LuneLocalization.swift"; path = "Resources/LuneLocalization.swift"; sourceTree = "<group>"; };
 		7D1651BFBBE29B2A3404FEAB /* Lune.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Lune.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		35D6211C5AD6F3F75A20B52B /* AiTelemetryStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "AiTelemetryStorage.swift"; path = "AI/AiTelemetryStorage.swift"; sourceTree = "<group>"; };
 		03E0201D1CF1804DAF4233A0 /* LuneAiEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "LuneAiEngine.swift"; path = "AI/LuneAiEngine.swift"; sourceTree = "<group>"; };
@@ -186,6 +189,7 @@
 				C64C950D89C83BD929C28F1E /* SettingsView.swift */,
 				5600201DAD2ED1A28479F7C4 /* SongRowView.swift */,
 				A635814A235951EAE7AA949C /* SongsListView.swift */,
+				LOC000000000000000000013 /* LuneLocalization.swift */,
 			);
 			path = Lune;
 			sourceTree = "<group>";
@@ -224,6 +228,7 @@
 				LOC000000000000000000007 /* fr */,
 				LOC000000000000000000008 /* pl */,
 				LOC000000000000000000009 /* pt-BR */,
+				LOC000000000000000000012 /* pt */,
 				LOC000000000000000000010 /* ru */,
 				LOC000000000000000000011 /* zh-Hans */,
 			);
@@ -263,6 +268,7 @@
 				fr,
 				pl,
 				"pt-BR",
+				pt,
 				ru,
 				"zh-Hans",
 			);
@@ -335,6 +341,7 @@
 				930D80ADB7A06B4C7CA3441B /* SettingsView.swift in Sources */,
 				273E2C8785CED01A712021E4 /* SongRowView.swift in Sources */,
 				5543232CF7CFE1C78F829DA6 /* SongsListView.swift in Sources */,
+				LOC000000000000000000014 /* LuneLocalization.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
