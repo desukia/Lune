@@ -38,8 +38,9 @@ public struct MainView: View {
                 (colors.isDark ? Color.black : colors.background)
                     .ignoresSafeArea()
                 
-                if let data = player.currentSong?.artworkData ?? library.allSongs.first?.artworkData,
-                   let img = UIImage(data: data) {
+                let currentOrFirst = player.currentSong ?? library.allSongs.first
+                if let song = currentOrFirst,
+                   let img = ArtworkCache.shared.image(for: song.id, data: song.artworkData) {
                     GeometryReader { bgGeo in
                         Image(uiImage: img)
                             .resizable()

@@ -45,7 +45,7 @@ public struct AlbumsView: View {
                             onAlbumClick(album)
                         } label: {
                             VStack(alignment: .leading, spacing: 8) {
-                                if let data = album.artworkData, let img = UIImage(data: data) {
+                                if let img = ArtworkCache.shared.image(for: album.id, data: album.artworkData) {
                                     Image(uiImage: img)
                                         .resizable()
                                         .aspectRatio(1, contentMode: .fill)
@@ -171,7 +171,7 @@ public struct AlbumDetailView: View {
             VStack(spacing: 20) {
                 // Header
                 VStack(spacing: 12) {
-                    if let data = album.artworkData, let img = UIImage(data: data) {
+                    if let img = ArtworkCache.shared.image(for: album.id, data: album.artworkData) {
                         Image(uiImage: img)
                             .resizable()
                             .aspectRatio(1, contentMode: .fill)

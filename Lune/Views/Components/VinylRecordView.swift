@@ -91,9 +91,10 @@ public struct VinylRecordView: View {
     
     // MARK: - Rounded Artwork Mode (Default Premium Cover)
     private var roundedArtworkView: some View {
-        ZStack {
+        let cachedImage = ArtworkCache.shared.image(for: "\(artworkData?.count ?? 0)", data: artworkData)
+        return ZStack {
             // Ambient Colorful Bloom Glow behind the artwork
-            if let data = artworkData, let uiImage = UIImage(data: data) {
+            if let uiImage = cachedImage {
                 Image(uiImage: uiImage)
                     .resizable()
                     .aspectRatio(contentMode: .fill)
@@ -105,7 +106,7 @@ public struct VinylRecordView: View {
             
             // Primary Cover Artwork
             ZStack {
-                if let data = artworkData, let uiImage = UIImage(data: data) {
+                if let uiImage = cachedImage {
                     Image(uiImage: uiImage)
                         .resizable()
                         .aspectRatio(contentMode: .fill)
@@ -163,7 +164,7 @@ public struct VinylRecordView: View {
             
             // Center Album Art Label
             ZStack {
-                if let data = artworkData, let uiImage = UIImage(data: data) {
+                if let uiImage = ArtworkCache.shared.image(for: "\(artworkData?.count ?? 0)", data: artworkData) {
                     Image(uiImage: uiImage)
                         .resizable()
                         .aspectRatio(contentMode: .fill)
@@ -197,7 +198,7 @@ public struct VinylRecordView: View {
     // MARK: - Square Mode
     private var squareArtworkView: some View {
         ZStack {
-            if let data = artworkData, let uiImage = UIImage(data: data) {
+            if let uiImage = ArtworkCache.shared.image(for: "\(artworkData?.count ?? 0)", data: artworkData) {
                 Image(uiImage: uiImage)
                     .resizable()
                     .aspectRatio(contentMode: .fill)

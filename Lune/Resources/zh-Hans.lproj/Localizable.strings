@@ -1100,3 +1100,6 @@
 "Radio: %@" = "%@ 电台";
 "Best of %@ & kindred artists" = "%@ 与相似艺人的最佳曲目";
 "Continuous mix around your top artist." = "围绕你最爱的艺人打造连续混音。";
+
+"PLAIN" = "普通歌词";
+"Add Manually" = "手动添加";

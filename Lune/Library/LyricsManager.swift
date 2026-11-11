@@ -77,12 +77,11 @@ public final class LyricsManager: ObservableObject {
     
     public func findActiveLineIndex(lines: [LyricLine], currentTime: TimeInterval) -> Int? {
         guard !lines.isEmpty else { return nil }
-        let timed = lines.filter { $0.timestamp >= 0 }
-        guard !timed.isEmpty else { return nil }
-        
-        for i in (0..<timed.count).reversed() {
-            if currentTime >= timed[i].timestamp {
-                return lines.firstIndex(where: { $0.id == timed[i].id }) ?? 0
+        // Fast zero-allocation backward scan
+        for i in stride(from: lines.count - 1, through: 0, by: -1) {
+            let ts = lines[i].timestamp
+            if ts >= 0 && currentTime >= ts {
+                return i
             }
         }
         return 0
@@ -162,12 +161,11 @@ public final class LyricsManager: ObservableObject {
         
         // Next: Plain Lyrics from Vagalume (eugabrielsilva/vagalume)
         if let vagText = vagalumeText, !vagText.isEmpty {
-            let parsed = formatPlainLyrics(vagText, duration: duration)
+            let parsed = formatPlainLyrics(vagText)
             if !parsed.isEmpty {
-                let synced = duration > 0
-                self.cache[song.id] = (parsed, synced)
+                self.cache[song.id] = (parsed, false)
                 self.lines = parsed
-                self.isSynced = synced
+                self.isSynced = false
                 self.isLoading = false
                 MusicLibraryManager.shared.updateLyrics(for: song.id, lyrics: vagText)
                 return
@@ -176,11 +174,10 @@ public final class LyricsManager: ObservableObject {
         
         // Fallback: Plain lyrics from LRCLIB
         if let lrclib = lrclibResult, let plain = lrclib.plain, !plain.isEmpty {
-            let parsed = formatPlainLyrics(plain, duration: duration)
-            let synced = duration > 0
-            self.cache[song.id] = (parsed, synced)
+            let parsed = formatPlainLyrics(plain)
+            self.cache[song.id] = (parsed, false)
             self.lines = parsed
-            self.isSynced = synced
+            self.isSynced = false
             self.isLoading = false
             MusicLibraryManager.shared.updateLyrics(for: song.id, lyrics: plain)
             return
@@ -315,25 +312,13 @@ public final class LyricsManager: ObservableObject {
     
     // MARK: - Helpers
     
-    private func formatPlainLyrics(_ text: String, duration: TimeInterval) -> [LyricLine] {
+    private func formatPlainLyrics(_ text: String) -> [LyricLine] {
         let raw = text.components(separatedBy: .newlines)
             .map { $0.trimmingCharacters(in: .whitespaces) }
             .filter { !$0.isEmpty }
         
         guard !raw.isEmpty else { return [] }
-        
-        if duration > 10 {
-            let startDelay: TimeInterval = 4.0
-            let availableTime = max(5.0, duration - startDelay - 6.0)
-            let step = availableTime / Double(raw.count)
-            
-            return raw.enumerated().map { index, lineText in
-                let time = startDelay + (Double(index) * step)
-                return LyricLine(timestamp: time, text: lineText)
-            }
-        } else {
-            return raw.map { LyricLine(timestamp: -1, text: $0) }
-        }
+        return raw.map { LyricLine(timestamp: -1, text: $0) }
     }
     
     private func sanitizeQuery(_ query: String) -> String {

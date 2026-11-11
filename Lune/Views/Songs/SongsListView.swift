@@ -191,6 +191,11 @@ public struct SongsListView: View {
             }
         }
         
+        // Fast path: library.allSongs is already sorted by title
+        if sortOption == .title && searchText.isEmpty && !filterFavoritesOnly {
+            return list
+        }
+        
         switch sortOption {
         case .title:
             return list.sorted { $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending }

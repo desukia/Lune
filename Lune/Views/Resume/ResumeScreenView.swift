@@ -247,7 +247,7 @@ public struct ResumeScreenView: View {
                     // Left side: 140x140 flower cookie shape (MaterialShapes.Flower.toShape())
                     ZStack {
                         let coverData = topArtistItem.artworkData ?? topSongItem.artworkData ?? activeSong?.artworkData
-                        if let data = coverData, let img = UIImage(data: data) {
+                        if let img = ArtworkCache.shared.image(for: "\(coverData?.count ?? 0)", data: coverData) {
                             Image(uiImage: img)
                                 .resizable()
                                 .aspectRatio(contentMode: .fill)
@@ -358,7 +358,7 @@ public struct ResumeScreenView: View {
                 } label: {
                     HStack(spacing: 12) {
                         // Song Cover 56x56 (cornerRadius: 14)
-                        if let data = song.artworkData, let img = UIImage(data: data) {
+                        if let img = ArtworkCache.shared.image(for: song.id, data: song.artworkData) {
                             Image(uiImage: img)
                                 .resizable()
                                 .aspectRatio(contentMode: .fill)
@@ -429,7 +429,7 @@ public struct ResumeScreenView: View {
                         } label: {
                             ZStack(alignment: .bottomLeading) {
                                 // Full cover artwork filling the 280x200 card
-                                if let data = song.artworkData, let img = UIImage(data: data) {
+                                if let img = ArtworkCache.shared.image(for: song.id, data: song.artworkData) {
                                     Image(uiImage: img)
                                         .resizable()
                                         .aspectRatio(contentMode: .fill)
@@ -576,7 +576,7 @@ public struct ResumeScreenView: View {
                         } label: {
                             // Android Lune 1:1 ArtistCircleCard (100x100 circle without text label)
                             Group {
-                                if let data = artist.artworkData, let img = UIImage(data: data) {
+                                if let img = ArtworkCache.shared.image(for: "artist_\(artist.name)", data: artist.artworkData) {
                                     Image(uiImage: img)
                                         .resizable()
                                         .aspectRatio(contentMode: .fill)
@@ -669,7 +669,7 @@ public struct ResumeScreenView: View {
                         player.playSong(song)
                     } label: {
                         HStack(spacing: 12) {
-                            if let data = song.artworkData, let img = UIImage(data: data) {
+                            if let img = ArtworkCache.shared.image(for: song.id, data: song.artworkData) {
                                 Image(uiImage: img)
                                     .resizable()
                                     .aspectRatio(contentMode: .fill)
@@ -714,7 +714,7 @@ public struct ResumeScreenView: View {
         DataStore.shared.getAllPlaylists()
     }
     private var recentlyAdded: [Song] {
-        library.allSongs.sorted { $0.dateAdded > $1.dateAdded }
+        library.recentlyAddedSongs.isEmpty ? library.allSongs : library.recentlyAddedSongs
     }
     
     private var topArtistItem: (name: String, count: Int, artworkData: Data?) {

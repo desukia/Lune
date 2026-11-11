@@ -95,7 +95,7 @@ public struct SongRowView: View {
             HStack(spacing: 12) {
                 // Artwork (48x48 rounded 12dp)
                 ZStack {
-                    if let data = song.artworkData, let img = UIImage(data: data) {
+                    if let img = ArtworkCache.shared.image(for: song.id, data: song.artworkData) {
                         Image(uiImage: img)
                             .resizable()
                             .aspectRatio(contentMode: .fill)

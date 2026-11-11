@@ -1100,3 +1100,6 @@
 "Radio: %@" = "Radio: %@";
 "Best of %@ & kindred artists" = "Das Beste von %@ & ähnlichen Künstlern";
 "Continuous mix around your top artist." = "Endloser Mix rund um deinen Lieblingskünstler.";
+
+"PLAIN" = "STATISCH";
+"Add Manually" = "Manuell Hinzufügen";

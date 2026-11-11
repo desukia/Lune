@@ -262,6 +262,7 @@ public struct LuneAnimatedLogo: View {
     public let tintColor: Color
     public var size: CGFloat
     public var rotationDuration: Double
+    @State private var isSpinning: Bool = false
     
     public init(
         isPlaying: Bool,
@@ -276,19 +277,26 @@ public struct LuneAnimatedLogo: View {
     }
     
     public var body: some View {
-        TimelineView(.animation(paused: !isPlaying)) { timeline in
-            let time = timeline.date.timeIntervalSinceReferenceDate
-            let rotation = isPlaying ? (time.truncatingRemainder(dividingBy: rotationDuration) / rotationDuration) * 360.0 : 0.0
+        ZStack {
+            LuneLogoDiamondsShape()
+                .fill(tintColor.opacity(0.35))
+                .rotationEffect(.degrees(isSpinning ? 360 : 0))
+                .animation(
+                    isSpinning
+                        ? .linear(duration: rotationDuration).repeatForever(autoreverses: false)
+                        : .default,
+                    value: isSpinning
+                )
             
-            ZStack {
-                LuneLogoDiamondsShape()
-                    .fill(tintColor.opacity(0.35))
-                    .rotationEffect(.degrees(rotation))
-                
-                LuneLogoNoteShape()
-                    .fill(tintColor)
-            }
-            .frame(width: size, height: size)
+            LuneLogoNoteShape()
+                .fill(tintColor)
+        }
+        .frame(width: size, height: size)
+        .onAppear {
+            if isPlaying { isSpinning = true }
+        }
+        .onChange(of: isPlaying) { _, playing in
+            isSpinning = playing
         }
     }
 }

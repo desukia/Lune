@@ -155,7 +155,7 @@ private struct M3WavySineShape: Shape {
         
         path.move(to: CGPoint(x: 0, y: centerY))
         
-        let step: CGFloat = 2.0
+        let step: CGFloat = 4.0
         var x: CGFloat = 0.0
         while x <= endX {
             let relativeX = x / wavelength

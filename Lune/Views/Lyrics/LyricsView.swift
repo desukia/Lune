@@ -3,7 +3,7 @@
 //  Lune
 //
 //  Material 3 Expressive synchronized lyrics viewer and timing editor (1:1 Android Lune LyricsActivity).
-//  Features dynamic artwork bloom, blurred inactive lines, glowing active line with spring bounce,
+//  Features dynamic artwork bloom, Apple Music depth blur, glowing active karaoke line with spring bounce,
 //  alignment toggle, timing offset controls, and auto-fetching via Vagalume and LRCLIB.
 //
 
@@ -39,7 +39,7 @@ public struct LyricsView: View {
         
         NavigationStack {
             ZStack {
-                // Background Ambient Artwork
+                // Background Ambient Artwork with Multi-stop Bloom
                 backgroundBackdrop(colors: colors)
                 
                 VStack(spacing: 0) {
@@ -47,14 +47,14 @@ public struct LyricsView: View {
                     if !isEditing {
                         topLyricsToolbar(colors: colors)
                             .padding(.horizontal, 16)
-                            .padding(.top, 4)
-                            .padding(.bottom, 6)
+                            .padding(.top, 6)
+                            .padding(.bottom, 8)
                         
                         // Collapsible Timing Offset Control Bar
                         if showOffsetBar {
                             timingOffsetControlBar(colors: colors)
                                 .padding(.horizontal, 16)
-                                .padding(.bottom, 8)
+                                .padding(.bottom, 10)
                                 .transition(.opacity.combined(with: .move(edge: .top)))
                         }
                     }
@@ -69,9 +69,9 @@ public struct LyricsView: View {
                     } else if lyricsManager.isLoading {
                         VStack(spacing: 16) {
                             ProgressView()
-                                .tint(colors.onSurface)
+                                .tint(colors.primary)
                                 .scaleEffect(1.3)
-                            Text("Searching lyrics on LRCLIB & Vagalume...")
+                            Text("Searching lyrics on LRCLIB & Vagalume...".localized)
                                 .font(.custom("Quicksand-Bold", size: 15))
                                 .foregroundColor(colors.onSurfaceVariant)
                         }
@@ -82,11 +82,11 @@ public struct LyricsView: View {
                                 .font(.system(size: 46))
                                 .foregroundColor(colors.onSurfaceVariant.opacity(0.50))
                             
-                            Text("No lyrics available")
+                            Text("No lyrics available".localized)
                                 .font(.custom("Quicksand-Bold", size: 18))
                                 .foregroundColor(colors.onSurface)
                             
-                            Text("Lyrics could not be found for this track.")
+                            Text("Lyrics could not be found for this track.".localized)
                                 .font(.custom("Quicksand-Regular", size: 14))
                                 .foregroundColor(colors.onSurfaceVariant)
                                 .multilineTextAlignment(.center)
@@ -98,7 +98,7 @@ public struct LyricsView: View {
                                         Task { await lyricsManager.fetchLyrics(for: song) }
                                     }
                                 } label: {
-                                    Label("Search Again", systemImage: "arrow.clockwise")
+                                    Label("Search Again".localized, systemImage: "arrow.clockwise")
                                         .font(.custom("Quicksand-Bold", size: 14))
                                         .foregroundColor(isDark ? Color.black : Color.white)
                                         .padding(.horizontal, 18)
@@ -113,7 +113,7 @@ public struct LyricsView: View {
                                 Button {
                                     isEditing = true
                                 } label: {
-                                    Label("Add Manually", systemImage: "pencil")
+                                    Label("Add Manually".localized, systemImage: "pencil")
                                         .font(.custom("Quicksand-Bold", size: 14))
                                         .foregroundColor(colors.onSurface)
                                         .padding(.horizontal, 18)
@@ -129,14 +129,16 @@ public struct LyricsView: View {
                         }
                         .frame(maxHeight: .infinity)
                     } else {
-                        // Scrolling Karaoke Lyrics with Center Focus
+                        // Scrolling Karaoke Lyrics with Apple Music Depth Blur and Spring Physics
                         ScrollViewReader { proxy in
                             ScrollView(showsIndicators: false) {
-                                VStack(alignment: textAlign == .center ? .center : .leading, spacing: 22) {
+                                VStack(alignment: textAlign == .center ? .center : .leading, spacing: 20) {
                                     Spacer(minLength: 40)
                                     
                                     ForEach(Array(lyricsManager.lines.enumerated()), id: \.element.id) { index, line in
-                                        let isActive = activeLineIndex == index
+                                        let isActive = lyricsManager.isSynced && (activeLineIndex == index)
+                                        let trimmed = line.text.trimmingCharacters(in: .whitespaces)
+                                        let isInstrumental = trimmed.isEmpty || trimmed == "♪" || trimmed.lowercased().contains("instrumental")
                                         
                                         Button {
                                             if line.timestamp >= 0 {
@@ -144,25 +146,54 @@ public struct LyricsView: View {
                                                 onSeek(max(0, line.timestamp - timeOffset))
                                             }
                                         } label: {
-                                            Text(line.text)
-                                                .font(.custom("Quicksand-Bold", size: isActive ? 26 : 22))
-                                                .foregroundColor(
-                                                    isActive
-                                                        ? colors.onSurface
-                                                        : colors.onSurface.opacity(0.35)
-                                                )
-                                                .multilineTextAlignment(textAlign)
-                                                .frame(maxWidth: .infinity, alignment: textAlign == .center ? .center : .leading)
-                                                .scaleEffect(isActive ? 1.08 : 1.0, anchor: textAlign == .center ? .center : .leading)
-                                                .shadow(
-                                                    color: isActive ? (isDark ? Color.white.opacity(0.35) : Color.black.opacity(0.12)) : Color.clear,
-                                                    radius: isActive ? 8 : 0,
-                                                    x: 0,
-                                                    y: 0
-                                                )
-                                                .padding(.horizontal, 28)
-                                                .padding(.vertical, 6)
-                                                .animation(.spring(response: 0.35, dampingFraction: 0.65), value: isActive)
+                                            HStack(spacing: 12) {
+                                                if lyricsManager.isSynced {
+                                                    Circle()
+                                                        .fill(isActive ? colors.primary : Color.clear)
+                                                        .frame(width: 6, height: 6)
+                                                        .shadow(color: isActive ? colors.primary : .clear, radius: 4)
+                                                        .opacity(isActive ? 1.0 : 0.0)
+                                                }
+                                                
+                                                if isInstrumental {
+                                                    HStack(spacing: 8) {
+                                                        Image(systemName: "waveform")
+                                                            .font(.system(size: 15, weight: .semibold))
+                                                        Text("♪ ♪ ♪")
+                                                            .font(.custom("Quicksand-Bold", size: 15))
+                                                    }
+                                                    .foregroundColor(isActive ? colors.primary : colors.onSurface.opacity(0.35))
+                                                    .padding(.vertical, 6)
+                                                } else {
+                                                    Text(line.text)
+                                                        .font(.custom("Quicksand-Bold", size: isActive ? 28 : 22))
+                                                        .foregroundColor(
+                                                            isActive
+                                                                ? colors.onSurface
+                                                                : colors.onSurface.opacity(lyricsManager.isSynced ? 0.38 : 0.76)
+                                                        )
+                                                        .multilineTextAlignment(textAlign)
+                                                        .lineSpacing(4)
+                                                        .blur(radius: (lyricsManager.isSynced && !isActive) ? 0.8 : 0)
+                                                        .shadow(
+                                                            color: isActive
+                                                                ? (isDark ? colors.primary.opacity(0.42) : colors.primary.opacity(0.22))
+                                                                : Color.clear,
+                                                            radius: isActive ? 14 : 0,
+                                                            x: 0,
+                                                            y: 2
+                                                        )
+                                                }
+                                            }
+                                            .frame(maxWidth: .infinity, alignment: textAlign == .center ? .center : .leading)
+                                            .padding(.horizontal, 24)
+                                            .padding(.vertical, isActive ? 10 : 5)
+                                            .background(
+                                                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                                    .fill(isActive ? colors.primary.opacity(isDark ? 0.12 : 0.08) : Color.clear)
+                                            )
+                                            .scaleEffect(isActive ? 1.05 : 1.0, anchor: textAlign == .center ? .center : .leading)
+                                            .animation(.spring(response: 0.38, dampingFraction: 0.72), value: isActive)
                                         }
                                         .buttonStyle(.plain)
                                         .id(index)
@@ -184,7 +215,7 @@ public struct LyricsView: View {
                                 )
                             )
                             .onChange(of: activeLineIndex) { _, newIndex in
-                                if let idx = newIndex {
+                                if lyricsManager.isSynced, let idx = newIndex {
                                     withAnimation(.easeInOut(duration: 0.40)) {
                                         proxy.scrollTo(idx, anchor: .center)
                                     }
@@ -194,22 +225,22 @@ public struct LyricsView: View {
                     }
                 }
             }
-            .navigationTitle(currentSong?.title ?? "Lyrics")
+            .navigationTitle(currentSong?.title ?? "Lyrics".localized)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     if isEditing {
-                        Button("Cancel") { isEditing = false }
+                        Button("Cancel".localized) { isEditing = false }
                             .foregroundColor(colors.onSurface)
                     } else {
-                        Button("Done") { dismiss() }
+                        Button("Done".localized) { dismiss() }
                             .font(.custom("Quicksand-Bold", size: 15))
                             .foregroundColor(colors.onSurface)
                     }
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     if isEditing {
-                        Button("Save") {
+                        Button("Save".localized) {
                             let parsed = lyricsManager.parseLrc(editableLrcText)
                             lyricsManager.lines = parsed
                             if let songId = currentSong?.id {
@@ -220,7 +251,7 @@ public struct LyricsView: View {
                         .font(.custom("Quicksand-Bold", size: 15))
                         .foregroundColor(colors.onSurface)
                     } else if !lyricsManager.lines.isEmpty {
-                        Button("Edit") {
+                        Button("Edit".localized) {
                             editableLrcText = lyricsManager.exportLrc(lines: lyricsManager.lines)
                             isEditing = true
                         }
@@ -240,23 +271,39 @@ public struct LyricsView: View {
     private func topLyricsToolbar(colors: LuneColorScheme) -> some View {
         let isDark = colors.isDark
         
-        return HStack {
-            if lyricsManager.isSynced {
-                Text("SYNCED")
+        return HStack(spacing: 8) {
+            // Status Badge: SYNCED or UNSYNCED
+            HStack(spacing: 4) {
+                Image(systemName: lyricsManager.isSynced ? "waveform" : "text.quote")
+                    .font(.system(size: 10, weight: .bold))
+                Text(lyricsManager.isSynced ? "SYNCED".localized : "PLAIN".localized)
                     .font(.custom("Quicksand-Bold", size: 9))
-                    .foregroundColor(colors.onSurface)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 3)
-                    .background(
-                        Capsule()
-                            .fill(isDark ? Color.white.opacity(0.18) : Color.black.opacity(0.08))
-                    )
             }
+            .foregroundColor(lyricsManager.isSynced ? colors.primary : colors.onSurfaceVariant)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .background(
+                Capsule()
+                    .fill(lyricsManager.isSynced ? colors.primary.opacity(isDark ? 0.20 : 0.12) : (isDark ? Color.white.opacity(0.12) : Color.black.opacity(0.06)))
+            )
             
             if timeOffset != 0 {
-                Text(String(format: "Offset: %+.1fs", timeOffset))
-                    .font(.custom("Quicksand-Medium", size: 11))
+                Button {
+                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                    withAnimation { timeOffset = 0 }
+                } label: {
+                    HStack(spacing: 3) {
+                        Text(String(format: "Offset: %+.1fs", timeOffset))
+                            .font(.custom("Quicksand-Medium", size: 11))
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: 9))
+                    }
                     .foregroundColor(colors.onSurfaceVariant)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 3)
+                    .background(Capsule().fill(isDark ? Color.white.opacity(0.10) : Color.black.opacity(0.05)))
+                }
+                .buttonStyle(.plain)
             }
             
             Spacer()
@@ -327,7 +374,7 @@ public struct LyricsView: View {
             timingButton(label: "-0.1s", colors: colors) { timeOffset -= 0.1 }
             
             if timeOffset != 0 {
-                Button("Reset") {
+                Button("Reset".localized) {
                     UIImpactFeedbackGenerator(style: .light).impactOccurred()
                     withAnimation { timeOffset = 0 }
                 }
@@ -370,7 +417,8 @@ public struct LyricsView: View {
     }
     
     private var activeLineIndex: Int? {
-        lyricsManager.findActiveLineIndex(lines: lyricsManager.lines, currentTime: currentTime + timeOffset)
+        guard lyricsManager.isSynced else { return nil }
+        return lyricsManager.findActiveLineIndex(lines: lyricsManager.lines, currentTime: currentTime + timeOffset)
     }
     
     @ViewBuilder
@@ -381,17 +429,18 @@ public struct LyricsView: View {
             (isDark ? Color.black : colors.background)
                 .ignoresSafeArea()
             
-            if let data = currentSong?.artworkData, let uiImage = UIImage(data: data) {
+            if let song = currentSong,
+               let uiImage = ArtworkCache.shared.image(for: song.id, data: song.artworkData) {
                 Image(uiImage: uiImage)
                     .resizable()
                     .aspectRatio(contentMode: .fill)
-                    .blur(radius: 65)
+                    .blur(radius: 60)
                     .opacity(isDark ? 0.40 : 0.18)
                     .overlay(
                         LinearGradient(
                             colors: isDark
-                                ? [Color.black.opacity(0.50), Color.black.opacity(0.85)]
-                                : [Color.white.opacity(0.65), Color.white.opacity(0.88)],
+                                ? [Color.black.opacity(0.45), Color.black.opacity(0.85)]
+                                : [Color.white.opacity(0.65), Color.white.opacity(0.90)],
                             startPoint: .top,
                             endPoint: .bottom
                         )

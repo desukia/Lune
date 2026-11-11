@@ -549,7 +549,7 @@ public struct SearchSheetView: View {
     private var searchResults: [Song] {
         let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
         if trimmed.isEmpty {
-            return library.allSongs
+            return Array(library.allSongs.prefix(30))
         }
         return library.allSongs.filter {
             $0.title.localizedCaseInsensitiveContains(trimmed) ||

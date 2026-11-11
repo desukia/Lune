@@ -51,7 +51,7 @@ public final class AudioPlayerManager: ObservableObject {
     @Published public var repeatMode: RepeatMode = .off
     @Published public var queue: [Song] = []
     @Published public var currentIndex: Int = 0
-    @Published public var visualizerBars: [Float] = Array(repeating: 0.1, count: 48)
+    public var visualizerBars: [Float] = Array(repeating: 0.1, count: 48)
     
     // Volume Control
     @Published public var volume: Float = 1.0 {
@@ -140,12 +140,6 @@ public final class AudioPlayerManager: ObservableObject {
         mixer.installTap(onBus: 0, bufferSize: 1024, format: format) { [weak self] buffer, _ in
             guard UIApplication.shared.applicationState != .background else { return }
             self?.visualizer.processAudioBuffer(buffer)
-        }
-        
-        visualizer.onMagnitudesUpdated = { [weak self] magnitudes in
-            Task { @MainActor [weak self] in
-                self?.visualizerBars = magnitudes
-            }
         }
     }
     
@@ -499,7 +493,7 @@ public final class AudioPlayerManager: ObservableObject {
             MPNowPlayingInfoPropertyPlaybackRate: isPlaying ? 1.0 : 0.0
         ]
         
-        if let artData = song.artworkData, let image = UIImage(data: artData) {
+        if let image = ArtworkCache.shared.image(for: song.id, data: song.artworkData) {
             info[MPMediaItemPropertyArtwork] = MPMediaItemArtwork(boundsSize: image.size) { _ in image }
         }
         MPNowPlayingInfoCenter.default().nowPlayingInfo = info

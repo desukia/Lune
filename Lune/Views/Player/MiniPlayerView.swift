@@ -129,7 +129,7 @@ public struct MiniPlayerView: View {
                         colors.surface
                         
                         // Blurred album cover overlay (1:1 Android MiniPlayerBlurCrossfade)
-                        if let data = song.artworkData, let uiImage = UIImage(data: data) {
+                        if let uiImage = ArtworkCache.shared.image(for: song.id, data: song.artworkData) {
                             Image(uiImage: uiImage)
                                 .resizable()
                                 .aspectRatio(contentMode: .fill)

@@ -238,8 +238,9 @@ public struct NowPlayingView: View {
             (colors.isDark ? Color.black : colors.background)
             
             // 2. Global Artwork Blur Background (1:1 Android FullPlayer Parity)
-            if let data = player.currentSong?.artworkData ?? library.allSongs.first?.artworkData,
-               let img = UIImage(data: data) {
+            let activeSong = player.currentSong ?? library.allSongs.first
+            if let song = activeSong,
+               let img = ArtworkCache.shared.image(for: song.id, data: song.artworkData) {
                 Image(uiImage: img)
                     .resizable()
                     .aspectRatio(contentMode: .fill)
@@ -401,7 +402,8 @@ public struct NowPlayingView: View {
                 let cornerRadius: CGFloat = (settings.coverShape == .square) ? 8 : 28
                 
                 ZStack {
-                    if let data = player.currentSong?.artworkData, let img = UIImage(data: data) {
+                    if let song = player.currentSong,
+                       let img = ArtworkCache.shared.image(for: song.id, data: song.artworkData) {
                         Image(uiImage: img)
                             .resizable()
                             .aspectRatio(contentMode: .fill)
@@ -511,7 +513,7 @@ public struct NowPlayingView: View {
                 
                 // Favorite Heart Button
                 if let song = player.currentSong {
-                    let isFav = library.allSongs.first(where: { $0.id == song.id })?.isFavorite ?? song.isFavorite
+                    let isFav = DataStore.shared.isFavorite(songId: song.id)
                     Button {
                         UIImpactFeedbackGenerator(style: .medium).impactOccurred()
                         library.toggleFavorite(for: song)
@@ -967,7 +969,8 @@ public struct NowPlayingView: View {
                             Spacer(minLength: 20)
                             
                             ForEach(Array(lyricsManager.lines.enumerated()), id: \.element.id) { index, line in
-                                let isActive = activeIdx == index
+                                let isActive = lyricsManager.isSynced && (activeIdx == index)
+                                let isInstrumental = line.text.trimmingCharacters(in: .whitespaces).isEmpty || line.text == "♪" || line.text.lowercased().contains("instrumental")
                                 
                                 Button {
                                     if line.timestamp >= 0 {
@@ -975,25 +978,50 @@ public struct NowPlayingView: View {
                                         player.seek(to: max(0, line.timestamp - (lyricsOffsetMs / 1000.0)))
                                     }
                                 } label: {
-                                    Text(line.text)
-                                        .font(.custom("Quicksand-Bold", size: isActive ? 24 : 20))
-                                        .foregroundColor(
-                                            isActive
-                                                ? colors.onSurface
-                                                : colors.onSurface.opacity(0.32)
-                                        )
-                                        .multilineTextAlignment(lyricsAlignment)
-                                        .frame(maxWidth: .infinity, alignment: lyricsAlignment == .center ? .center : .leading)
-                                        .scaleEffect(isActive ? 1.08 : 1.0, anchor: lyricsAlignment == .center ? .center : .leading)
-                                        .shadow(
-                                            color: isActive ? (isDark ? Color.white.opacity(0.35) : Color.black.opacity(0.12)) : Color.clear,
-                                            radius: isActive ? 8 : 0,
-                                            x: 0,
-                                            y: 0
-                                        )
-                                        .padding(.horizontal, 24)
-                                        .padding(.vertical, 6)
-                                        .animation(.spring(response: 0.35, dampingFraction: 0.65), value: isActive)
+                                    HStack(spacing: 10) {
+                                        if lyricsManager.isSynced {
+                                            Circle()
+                                                .fill(isActive ? colors.primary : Color.clear)
+                                                .frame(width: 5, height: 5)
+                                                .opacity(isActive ? 1.0 : 0.0)
+                                        }
+                                        
+                                        if isInstrumental {
+                                            HStack(spacing: 6) {
+                                                Image(systemName: "waveform")
+                                                    .font(.system(size: 13, weight: .semibold))
+                                                Text("♪ ♪ ♪")
+                                                    .font(.custom("Quicksand-Bold", size: 14))
+                                            }
+                                            .foregroundColor(isActive ? colors.primary : colors.onSurface.opacity(0.35))
+                                        } else {
+                                            Text(line.text)
+                                                .font(.custom("Quicksand-Bold", size: isActive ? 24 : 19))
+                                                .foregroundColor(
+                                                    isActive
+                                                        ? colors.onSurface
+                                                        : colors.onSurface.opacity(lyricsManager.isSynced ? 0.36 : 0.72)
+                                                )
+                                                .multilineTextAlignment(lyricsAlignment)
+                                                .lineSpacing(3)
+                                                .blur(radius: (lyricsManager.isSynced && !isActive) ? 0.75 : 0)
+                                                .shadow(
+                                                    color: isActive ? (isDark ? colors.primary.opacity(0.35) : colors.primary.opacity(0.18)) : Color.clear,
+                                                    radius: isActive ? 10 : 0,
+                                                    x: 0,
+                                                    y: 2
+                                                )
+                                        }
+                                    }
+                                    .frame(maxWidth: .infinity, alignment: lyricsAlignment == .center ? .center : .leading)
+                                    .padding(.horizontal, 20)
+                                    .padding(.vertical, isActive ? 8 : 4)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                            .fill(isActive ? colors.primary.opacity(isDark ? 0.12 : 0.08) : Color.clear)
+                                    )
+                                    .scaleEffect(isActive ? 1.05 : 1.0, anchor: lyricsAlignment == .center ? .center : .leading)
+                                    .animation(.spring(response: 0.38, dampingFraction: 0.72), value: isActive)
                                 }
                                 .buttonStyle(.plain)
                                 .id(index)
@@ -1015,7 +1043,7 @@ public struct NowPlayingView: View {
                         )
                     )
                     .onChange(of: activeIdx) { _, newIndex in
-                        if let idx = newIndex {
+                        if lyricsManager.isSynced, let idx = newIndex {
                             withAnimation(.easeInOut(duration: 0.40)) {
                                 proxy.scrollTo(idx, anchor: .center)
                             }
@@ -1085,7 +1113,7 @@ public struct NowPlayingView: View {
             // Options Menu Button (Ellipsis)
             Menu {
                 if let song = player.currentSong {
-                    let isFav = library.allSongs.first(where: { $0.id == song.id })?.isFavorite ?? song.isFavorite
+                    let isFav = DataStore.shared.isFavorite(songId: song.id)
                     Button {
                         library.toggleFavorite(for: song)
                     } label: {
@@ -1138,7 +1166,8 @@ public struct NowPlayingView: View {
             
             // Hero Artwork (Centered Continuous Squircle)
             ZStack {
-                if let data = player.currentSong?.artworkData, let uiImage = UIImage(data: data) {
+                if let song = player.currentSong,
+                   let uiImage = ArtworkCache.shared.image(for: song.id, data: song.artworkData) {
                     Image(uiImage: uiImage)
                         .resizable()
                         .aspectRatio(contentMode: .fill)
@@ -1210,7 +1239,7 @@ public struct NowPlayingView: View {
                 
                 // Favorite Heart Button
                 if let song = player.currentSong {
-                    let isFav = library.allSongs.first(where: { $0.id == song.id })?.isFavorite ?? song.isFavorite
+                    let isFav = DataStore.shared.isFavorite(songId: song.id)
                     Button {
                         UIImpactFeedbackGenerator(style: .medium).impactOccurred()
                         library.toggleFavorite(for: song)
@@ -1239,7 +1268,8 @@ public struct NowPlayingView: View {
         VStack(spacing: 8) {
             // Mini Header Bar: Artwork Thumbnail + Title + Artist + Close
             HStack(spacing: 12) {
-                if let data = player.currentSong?.artworkData, let img = UIImage(data: data) {
+                if let song = player.currentSong,
+                   let img = ArtworkCache.shared.image(for: song.id, data: song.artworkData) {
                     Image(uiImage: img)
                         .resizable()
                         .aspectRatio(contentMode: .fill)
@@ -1328,15 +1358,16 @@ public struct NowPlayingView: View {
                 }
                 Spacer()
             } else {
+                let activeIdx = lyricsManager.isSynced ? lyricsManager.findActiveLineIndex(lines: lyricsManager.lines, currentTime: player.currentTime) : nil
+                
                 ScrollViewReader { proxy in
                     ScrollView(showsIndicators: false) {
-                        VStack(alignment: .leading, spacing: 24) {
+                        VStack(alignment: .leading, spacing: 22) {
                             Spacer(minLength: 24)
                             
-                            let activeIdx = lyricsManager.findActiveLineIndex(lines: lyricsManager.lines, currentTime: player.currentTime)
-                            
                             ForEach(Array(lyricsManager.lines.enumerated()), id: \.element.id) { index, line in
-                                let isActive = activeIdx == index
+                                let isActive = lyricsManager.isSynced && (activeIdx == index)
+                                let isInstrumental = line.text.trimmingCharacters(in: .whitespaces).isEmpty || line.text == "♪" || line.text.lowercased().contains("instrumental")
                                 
                                 Button {
                                     if line.timestamp >= 0 {
@@ -1344,15 +1375,40 @@ public struct NowPlayingView: View {
                                         player.seek(to: line.timestamp)
                                     }
                                 } label: {
-                                    Text(line.text)
-                                        .font(.custom("Quicksand-Bold", size: 24))
-                                        .foregroundColor(isActive ? Color.white : Color.white.opacity(0.35))
-                                        .multilineTextAlignment(.leading)
-                                        .scaleEffect(isActive ? 1.02 : 1.0, anchor: .leading)
-                                        .shadow(color: isActive ? Color.white.opacity(0.35) : Color.clear, radius: 8, x: 0, y: 0)
-                                        .padding(.horizontal, 28)
-                                        .padding(.vertical, 6)
-                                        .animation(.easeInOut(duration: 0.28), value: isActive)
+                                    HStack(spacing: 12) {
+                                        if lyricsManager.isSynced {
+                                            Circle()
+                                                .fill(isActive ? Color.white : Color.clear)
+                                                .frame(width: 5, height: 5)
+                                                .opacity(isActive ? 1.0 : 0.0)
+                                        }
+                                        
+                                        if isInstrumental {
+                                            HStack(spacing: 6) {
+                                                Image(systemName: "waveform")
+                                                    .font(.system(size: 14, weight: .semibold))
+                                                Text("♪ ♪ ♪")
+                                                    .font(.custom("Quicksand-Bold", size: 14))
+                                            }
+                                            .foregroundColor(isActive ? .white : .white.opacity(0.35))
+                                        } else {
+                                            Text(line.text)
+                                                .font(.custom("Quicksand-Bold", size: isActive ? 26 : 21))
+                                                .foregroundColor(isActive ? Color.white : Color.white.opacity(lyricsManager.isSynced ? 0.38 : 0.75))
+                                                .multilineTextAlignment(.leading)
+                                                .lineSpacing(4)
+                                                .blur(radius: (lyricsManager.isSynced && !isActive) ? 0.8 : 0)
+                                                .shadow(color: isActive ? Color.white.opacity(0.40) : Color.clear, radius: 10, x: 0, y: 2)
+                                        }
+                                    }
+                                    .padding(.horizontal, 24)
+                                    .padding(.vertical, isActive ? 8 : 4)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                            .fill(isActive ? Color.white.opacity(0.12) : Color.clear)
+                                    )
+                                    .scaleEffect(isActive ? 1.04 : 1.0, anchor: .leading)
+                                    .animation(.spring(response: 0.38, dampingFraction: 0.72), value: isActive)
                                 }
                                 .buttonStyle(.plain)
                                 .id(index)
@@ -1373,9 +1429,9 @@ public struct NowPlayingView: View {
                             endPoint: .bottom
                         )
                     )
-                    .onChange(of: lyricsManager.findActiveLineIndex(lines: lyricsManager.lines, currentTime: player.currentTime)) { _, newIndex in
-                        if let idx = newIndex {
-                            withAnimation(.easeInOut(duration: 0.45)) {
+                    .onChange(of: activeIdx) { _, newIndex in
+                        if lyricsManager.isSynced, let idx = newIndex {
+                            withAnimation(.easeInOut(duration: 0.40)) {
                                 proxy.scrollTo(idx, anchor: .center)
                             }
                         }
@@ -1653,7 +1709,8 @@ public struct NowPlayingView: View {
         ZStack {
             Color.black
             
-            if let data = player.currentSong?.artworkData, let uiImage = UIImage(data: data) {
+            if let song = player.currentSong,
+               let uiImage = ArtworkCache.shared.image(for: song.id, data: song.artworkData) {
                 Image(uiImage: uiImage)
                     .resizable()
                     .aspectRatio(contentMode: .fill)

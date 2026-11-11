@@ -19,6 +19,7 @@ public final class MusicLibraryManager: ObservableObject {
     public static let shared = MusicLibraryManager()
     
     @Published public var allSongs: [Song] = []
+    @Published public var recentlyAddedSongs: [Song] = []
     @Published public var albums: [Album] = []
     @Published public var artists: [Artist] = []
     @Published public var genres: [String] = []
@@ -66,6 +67,7 @@ public final class MusicLibraryManager: ObservableObject {
             .sorted { $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending }
         
         self.allSongs = unique
+        self.recentlyAddedSongs = unique.sorted { $0.dateAdded > $1.dateAdded }
         self.rebuildCollections(from: unique)
         self.isLoading = false
         
@@ -108,7 +110,7 @@ public final class MusicLibraryManager: ObservableObject {
             let albumId = (item.albumPersistentID != 0) ? Int64(bitPattern: item.albumPersistentID) : LuneIdGenerator.albumId(album: album, artist: artist)
             let genre = item.genre
             let duration = item.playbackDuration
-            let artwork = item.artwork?.image(at: CGSize(width: 512, height: 512))?.jpegData(compressionQuality: 0.85)
+            let artwork = item.artwork?.image(at: CGSize(width: 256, height: 256))?.jpegData(compressionQuality: 0.70)
             
             let song = Song(
                 id: id,

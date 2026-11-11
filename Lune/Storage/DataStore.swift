@@ -12,6 +12,7 @@ public final class DataStore: @unchecked Sendable {
     public static let shared = DataStore()
     
     private let lock = NSLock()
+    private let ioQueue = DispatchQueue(label: "com.lune.datastore.io", qos: .utility)
     private var playlists: [Playlist] = []
     private var favorites: Set<Int64> = []
     private var stats: [String: PlaybackStats] = [:]
@@ -108,10 +109,12 @@ public final class DataStore: @unchecked Sendable {
         lock.lock()
         let copy = playlists
         lock.unlock()
-        if let encoded = try? JSONEncoder().encode(copy) {
-            let dir = playlistsFileURL.deletingLastPathComponent()
-            try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-            try? encoded.write(to: playlistsFileURL, options: .atomic)
+        ioQueue.async { [playlistsFileURL] in
+            if let encoded = try? JSONEncoder().encode(copy) {
+                let dir = playlistsFileURL.deletingLastPathComponent()
+                try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+                try? encoded.write(to: playlistsFileURL, options: .atomic)
+            }
         }
     }
     
@@ -132,10 +135,12 @@ public final class DataStore: @unchecked Sendable {
         }
         let copy = favorites
         lock.unlock()
-        if let encoded = try? JSONEncoder().encode(copy) {
-            let dir = favoritesFileURL.deletingLastPathComponent()
-            try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-            try? encoded.write(to: favoritesFileURL, options: .atomic)
+        ioQueue.async { [favoritesFileURL] in
+            if let encoded = try? JSONEncoder().encode(copy) {
+                let dir = favoritesFileURL.deletingLastPathComponent()
+                try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+                try? encoded.write(to: favoritesFileURL, options: .atomic)
+            }
         }
     }
     
@@ -151,8 +156,10 @@ public final class DataStore: @unchecked Sendable {
         stats[key] = entry
         let copy = stats
         lock.unlock()
-        if let encoded = try? JSONEncoder().encode(copy) {
-            try? encoded.write(to: statsFileURL, options: .atomic)
+        ioQueue.async { [statsFileURL] in
+            if let encoded = try? JSONEncoder().encode(copy) {
+                try? encoded.write(to: statsFileURL, options: .atomic)
+            }
         }
     }
     

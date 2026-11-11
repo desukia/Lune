@@ -39,7 +39,7 @@ public struct ArtistsView: View {
                             selectedArtist = artist
                         } label: {
                             VStack(spacing: 8) {
-                                if let data = artist.artworkData, let img = UIImage(data: data) {
+                                if let img = ArtworkCache.shared.image(for: "artist_\(artist.name)", data: artist.artworkData) {
                                     Image(uiImage: img)
                                         .resizable()
                                         .aspectRatio(1, contentMode: .fill)
@@ -165,7 +165,7 @@ public struct ArtistDetailView: View {
             VStack(spacing: 20) {
                 // Header
                 VStack(spacing: 12) {
-                    if let data = artist.artworkData, let img = UIImage(data: data) {
+                    if let img = ArtworkCache.shared.image(for: "artist_\(artist.name)", data: artist.artworkData) {
                         Image(uiImage: img)
                             .resizable()
                             .aspectRatio(1, contentMode: .fill)

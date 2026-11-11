@@ -29,6 +29,7 @@
 		64F6C35BA7BFC4192186ED78 /* quicksand_regular.ttf in Sources/Resources */ = {isa = PBXBuildFile; fileRef = 5FA7B43BF25BF3EDF370C8E7 /* quicksand_regular.ttf */; };
 		8A95A47719FD121F13788D88 /* DataStore.swift in Sources/Resources */ = {isa = PBXBuildFile; fileRef = 7838E54B87EFE39F30583524 /* DataStore.swift */; };
 		9B03E6F4D055DF3B66BD02E2 /* SettingsManager.swift in Sources/Resources */ = {isa = PBXBuildFile; fileRef = CC45316A5CCA3695AF41EBB9 /* SettingsManager.swift */; };
+		ART000000000000000000002 /* ArtworkCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = ART000000000000000000001 /* ArtworkCache.swift */; };
 		75F5F48F8D88C511D443E2B7 /* AlbumsView.swift in Sources/Resources */ = {isa = PBXBuildFile; fileRef = 018CB5D033D96D3974B8233B /* AlbumsView.swift */; };
 		ABFE48A54415FC0828FCA075 /* ArtistsView.swift in Sources/Resources */ = {isa = PBXBuildFile; fileRef = 3FDA88F367773F3027BE589F /* ArtistsView.swift */; };
 		FCD81CD786AD40637168C915 /* GlassComponents.swift in Sources/Resources */ = {isa = PBXBuildFile; fileRef = F5ACBC4E8B22FBD4C1CE2497 /* GlassComponents.swift */; };
@@ -90,6 +91,7 @@
 		868E3100871253A4B76A0E36 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "Info.plist"; path = "Resources/Info.plist"; sourceTree = "<group>"; };
 		7838E54B87EFE39F30583524 /* DataStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "DataStore.swift"; path = "Storage/DataStore.swift"; sourceTree = "<group>"; };
 		CC45316A5CCA3695AF41EBB9 /* SettingsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "SettingsManager.swift"; path = "Storage/SettingsManager.swift"; sourceTree = "<group>"; };
+		ART000000000000000000001 /* ArtworkCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "ArtworkCache.swift"; path = "Storage/ArtworkCache.swift"; sourceTree = "<group>"; };
 		018CB5D033D96D3974B8233B /* AlbumsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "AlbumsView.swift"; path = "Views/Albums/AlbumsView.swift"; sourceTree = "<group>"; };
 		3FDA88F367773F3027BE589F /* ArtistsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "ArtistsView.swift"; path = "Views/Artists/ArtistsView.swift"; sourceTree = "<group>"; };
 		F5ACBC4E8B22FBD4C1CE2497 /* GlassComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "GlassComponents.swift"; path = "Views/Components/GlassComponents.swift"; sourceTree = "<group>"; };
@@ -167,6 +169,7 @@
 				868E3100871253A4B76A0E36 /* Info.plist */,
 				7838E54B87EFE39F30583524 /* DataStore.swift */,
 				CC45316A5CCA3695AF41EBB9 /* SettingsManager.swift */,
+				ART000000000000000000001 /* ArtworkCache.swift */,
 				018CB5D033D96D3974B8233B /* AlbumsView.swift */,
 				3FDA88F367773F3027BE589F /* ArtistsView.swift */,
 				F5ACBC4E8B22FBD4C1CE2497 /* GlassComponents.swift */,
@@ -319,6 +322,7 @@
 				96C0D7B01240BB10CA57E4FE /* Song.swift in Sources */,
 				8A95A47719FD121F13788D88 /* DataStore.swift in Sources */,
 				9B03E6F4D055DF3B66BD02E2 /* SettingsManager.swift in Sources */,
+				ART000000000000000000002 /* ArtworkCache.swift in Sources */,
 				9F1E7DCC709057953F57A444 /* MainView.swift in Sources */,
 				75F5F48F8D88C511D443E2B7 /* AlbumsView.swift in Sources */,
 				ABFE48A54415FC0828FCA075 /* ArtistsView.swift in Sources */,

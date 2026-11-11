@@ -328,13 +328,25 @@ public final class LuneAiEngine: ObservableObject {
     public func refreshMixes(allSongs: [Song]) {
         guard !allSongs.isEmpty else { return }
         
-        var generated: [AiMix] = []
-        let currentTime = TimeOfDay.current()
-        let dayType = DayType.current()
-        let isWeekend = dayType == .weekend
-        
-        // 1. Daily AI Flow
-        let daily = allSongs.sorted { getSongAffinity(songId: $0.id) > getSongAffinity(songId: $1.id) }.prefix(32)
+        Task(priority: .utility) { [weak self] in
+            guard let self = self else { return }
+            
+            var generated: [AiMix] = []
+            let currentTime = TimeOfDay.current()
+            let dayType = DayType.current()
+            let isWeekend = dayType == .weekend
+            
+            // Fast profile cache to avoid redundant regex profiling
+            var profiles: [Int64: SongProfile] = [:]
+            func getProfile(_ song: Song) -> SongProfile {
+                if let p = profiles[song.id] { return p }
+                let p = self.profileSong(song)
+                profiles[song.id] = p
+                return p
+            }
+            
+            // 1. Daily AI Flow
+            let daily = allSongs.sorted { self.getSongAffinity(songId: $0.id) > self.getSongAffinity(songId: $1.id) }.prefix(32)
         if daily.count >= 3 {
             generated.append(
                 AiMix(
@@ -342,7 +354,7 @@ public final class LuneAiEngine: ObservableObject {
                     title: "Daily Flow".localized,
                     subtitle: "Essential tracks with harmonic flow".localized,
                     category: .dailyFlow,
-                    songs: generateSmartShuffle(Array(daily)),
+                    songs: self.generateSmartShuffle(Array(daily)),
                     gradientColors: [Color(hex: 0x6366F1), Color(hex: 0x8B5CF6), Color(hex: 0xEC4899)],
                     iconName: "sparkles",
                     description: "Blends your real-time affinity with Markov transitions.".localized
@@ -351,7 +363,7 @@ public final class LuneAiEngine: ObservableObject {
         }
         
         // 2. Discovery Mode
-        let discovery = generateDiscoveryQueue(allSongs).prefix(28)
+        let discovery = self.generateDiscoveryQueue(allSongs).prefix(28)
         if discovery.count >= 3 {
             generated.append(
                 AiMix(
@@ -368,8 +380,8 @@ public final class LuneAiEngine: ObservableObject {
         }
         
         // 3. Energy Boost
-        let energyTracks = allSongs.filter { profileSong($0).energyScore > 0.62 || ($0.duration < 230 && getSongAffinity(songId: $0.id) > 8.0) }
-            .sorted { getSongAffinity(songId: $0.id) > getSongAffinity(songId: $1.id) }
+        let energyTracks = allSongs.filter { getProfile($0).energyScore > 0.62 || ($0.duration < 230 && self.getSongAffinity(songId: $0.id) > 8.0) }
+            .sorted { self.getSongAffinity(songId: $0.id) > self.getSongAffinity(songId: $1.id) }
             .prefix(25)
         if energyTracks.count >= 3 {
             generated.append(
@@ -378,7 +390,7 @@ public final class LuneAiEngine: ObservableObject {
                     title: "Energy Boost".localized,
                     subtitle: "High tempo beats to motivate and workout".localized,
                     category: .energy,
-                    songs: generateSmartShuffle(Array(energyTracks)),
+                    songs: self.generateSmartShuffle(Array(energyTracks)),
                     gradientColors: [Color(hex: 0xF97316), Color(hex: 0xEF4444), Color(hex: 0xEC4899)],
                     iconName: "bolt.fill",
                     description: "Vibrant tempos and dynamic momentum from your collection.".localized
@@ -387,8 +399,8 @@ public final class LuneAiEngine: ObservableObject {
         }
         
         // 4. Chill & Relax
-        let chillTracks = allSongs.filter { profileSong($0).energyScore < 0.45 || profileSong($0).isFocusFriendly }
-            .sorted { getSongAffinity(songId: $0.id) > getSongAffinity(songId: $1.id) }
+        let chillTracks = allSongs.filter { getProfile($0).energyScore < 0.45 || getProfile($0).isFocusFriendly }
+            .sorted { self.getSongAffinity(songId: $0.id) > self.getSongAffinity(songId: $1.id) }
             .prefix(25)
         if chillTracks.count >= 3 {
             generated.append(
@@ -397,7 +409,7 @@ public final class LuneAiEngine: ObservableObject {
                     title: "Chill & Relax".localized,
                     subtitle: "Smooth textures to unwind and focus".localized,
                     category: .chill,
-                    songs: generateSmartShuffle(Array(chillTracks)),
+                    songs: self.generateSmartShuffle(Array(chillTracks)),
                     gradientColors: [Color(hex: 0x06B6D4), Color(hex: 0x3B82F6), Color(hex: 0x6366F1)],
                     iconName: "leaf.fill",
                     description: "Mellow acoustic melodies for calm and concentration.".localized
@@ -435,8 +447,8 @@ public final class LuneAiEngine: ObservableObject {
         }
         let now = Int64(Date().timeIntervalSince1970 * 1000)
         let timeSongs = allSongs.sorted {
-            storage.getInteraction(songId: $0.id).calculateDynamicScore(now: now, currentTime: currentTime, isWeekend: isWeekend) >
-            storage.getInteraction(songId: $1.id).calculateDynamicScore(now: now, currentTime: currentTime, isWeekend: isWeekend)
+            self.storage.getInteraction(songId: $0.id).calculateDynamicScore(now: now, currentTime: currentTime, isWeekend: isWeekend) >
+            self.storage.getInteraction(songId: $1.id).calculateDynamicScore(now: now, currentTime: currentTime, isWeekend: isWeekend)
         }.prefix(25)
         
         if timeSongs.count >= 3 {
@@ -446,7 +458,7 @@ public final class LuneAiEngine: ObservableObject {
                     title: timeName,
                     subtitle: timeSub,
                     category: .timeOfDay,
-                    songs: generateSmartShuffle(Array(timeSongs)),
+                    songs: self.generateSmartShuffle(Array(timeSongs)),
                     gradientColors: timeColors,
                     iconName: currentTime == .night ? "moon.stars.fill" : "sun.max.fill",
                     description: "Adapts to your current temporal habits.".localized
@@ -457,7 +469,7 @@ public final class LuneAiEngine: ObservableObject {
         // 6. Forgotten Gems
         let twoWeeksAgo = now - (14 * 86400000)
         let forgotten = allSongs.filter { song in
-            let interaction = storage.getInteraction(songId: song.id)
+            let interaction = self.storage.getInteraction(songId: song.id)
             return (interaction.isFavorite || interaction.playCount >= 2) &&
                    (interaction.lastPlayedTimestamp <= twoWeeksAgo)
         }.shuffled().prefix(22)
@@ -477,7 +489,7 @@ public final class LuneAiEngine: ObservableObject {
         }
         
         // 7. Acoustic & Live Sessions
-        let acousticLive = allSongs.filter { profileSong($0).isLiveOrAcoustic }
+        let acousticLive = allSongs.filter { getProfile($0).isLiveOrAcoustic }
         if acousticLive.count >= 3 {
             generated.append(
                 AiMix(
@@ -485,7 +497,7 @@ public final class LuneAiEngine: ObservableObject {
                     title: "Acoustic & Live".localized,
                     subtitle: "Unplugged sessions and intimate concerts".localized,
                     category: .acousticLive,
-                    songs: generateSmartShuffle(acousticLive),
+                    songs: self.generateSmartShuffle(acousticLive),
                     gradientColors: [Color(hex: 0xD97706), Color(hex: 0xB45309), Color(hex: 0x78350F)],
                     iconName: "mic.fill",
                     description: "Intelligent acoustic and live recording detection.".localized
@@ -497,11 +509,11 @@ public final class LuneAiEngine: ObservableObject {
         let artistsGrouped = Dictionary(grouping: allSongs, by: { $0.artist })
             .filter { !$0.key.isEmpty && $0.value.count >= 2 }
         if let top = artistsGrouped.max(by: { a, b in
-            a.value.map { getSongAffinity(songId: $0.id) }.reduce(0, +) <
-            b.value.map { getSongAffinity(songId: $0.id) }.reduce(0, +)
+            a.value.map { self.getSongAffinity(songId: $0.id) }.reduce(0, +) <
+            b.value.map { self.getSongAffinity(songId: $0.id) }.reduce(0, +)
         }) {
             let artistSongs = top.value
-            let kindred = allSongs.filter { $0.artist != top.key && computeSongSimilarity(artistSongs[0], $0) > 0.40 }
+            let kindred = allSongs.filter { $0.artist != top.key && self.computeSongSimilarity(artistSongs[0], $0) > 0.40 }
             let spotlight = Array((artistSongs + kindred.prefix(12)).prefix(25))
             if spotlight.count >= 3 {
                 generated.append(
@@ -510,7 +522,7 @@ public final class LuneAiEngine: ObservableObject {
                         title: "Radio: %@".localized(top.key),
                         subtitle: "Best of %@ & kindred artists".localized(top.key),
                         category: .artistSpotlight,
-                        songs: generateSmartShuffle(spotlight),
+                        songs: self.generateSmartShuffle(spotlight),
                         gradientColors: [Color(hex: 0xE11D48), Color(hex: 0xBE123C), Color(hex: 0x881337)],
                         iconName: "person.crop.circle.fill",
                         description: "Continuous mix around your top artist.".localized
@@ -519,6 +531,10 @@ public final class LuneAiEngine: ObservableObject {
             }
         }
         
-        self.aiMixes = generated
+            let finalMixes = generated
+            await MainActor.run {
+                self.aiMixes = finalMixes
+            }
+        }
     }
 }
