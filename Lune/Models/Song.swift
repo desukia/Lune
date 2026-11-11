@@ -32,7 +32,7 @@ public struct Song: Identifiable, Hashable, Codable, Sendable {
     public let bitDepth: Int?
     
     public init(
-        id: Int64 = Int64(UUID().hashValue),
+        id: Int64 = 0,
         albumId: Int64 = 0,
         title: String,
         artist: String,
@@ -55,8 +55,8 @@ public struct Song: Identifiable, Hashable, Codable, Sendable {
         sampleRate: Int? = nil,
         bitDepth: Int? = nil
     ) {
-        self.id = id
-        self.albumId = albumId
+        self.id = (id != 0) ? id : LuneIdGenerator.songId(url: url, title: title, artist: artist)
+        self.albumId = (albumId != 0) ? albumId : LuneIdGenerator.albumId(album: album, artist: artist)
         self.title = title
         self.artist = artist
         self.album = album

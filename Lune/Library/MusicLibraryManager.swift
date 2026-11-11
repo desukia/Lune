@@ -99,17 +99,18 @@ public final class MusicLibraryManager: ObservableObject {
         
         for item in items {
             guard let url = item.assetURL else { continue }
-            let id = Int64(item.persistentID)
             let title = item.title ?? "Unknown Title"
             let artist = item.artist ?? "Unknown Artist"
             let album = item.albumTitle ?? "Unknown Album"
+            let id = (item.persistentID != 0) ? Int64(bitPattern: item.persistentID) : LuneIdGenerator.songId(url: url, title: title, artist: artist)
+            let albumId = (item.albumPersistentID != 0) ? Int64(bitPattern: item.albumPersistentID) : LuneIdGenerator.albumId(album: album, artist: artist)
             let genre = item.genre
             let duration = item.playbackDuration
             let artwork = item.artwork?.image(at: CGSize(width: 512, height: 512))?.jpegData(compressionQuality: 0.85)
             
             let song = Song(
                 id: id,
-                albumId: Int64(item.albumPersistentID),
+                albumId: albumId,
                 title: title,
                 artist: artist,
                 album: album,
@@ -183,8 +184,8 @@ public final class MusicLibraryManager: ObservableObject {
         let folder = url.deletingLastPathComponent().lastPathComponent
         let format = url.pathExtension.uppercased()
         let isHiFi = isHiRes || format == "FLAC" || format == "ALAC" || format == "WAV"
-        let songId = Int64(abs(url.absoluteString.hashValue))
-        let albumId = Int64(abs(album.hashValue))
+        let songId = LuneIdGenerator.songId(url: url, title: title, artist: artist)
+        let albumId = LuneIdGenerator.albumId(album: album, artist: artist)
         
         return Song(
             id: songId,

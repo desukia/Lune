@@ -261,17 +261,24 @@ public struct LuneAnimatedLogo: View {
     public let isPlaying: Bool
     public let tintColor: Color
     public var size: CGFloat
+    public var rotationDuration: Double
     
-    public init(isPlaying: Bool, tintColor: Color = .white, size: CGFloat = 42) {
+    public init(
+        isPlaying: Bool,
+        tintColor: Color = .white,
+        size: CGFloat = 42,
+        rotationDuration: Double = 2.0
+    ) {
         self.isPlaying = isPlaying
         self.tintColor = tintColor
         self.size = size
+        self.rotationDuration = rotationDuration
     }
     
     public var body: some View {
         TimelineView(.animation(paused: !isPlaying)) { timeline in
             let time = timeline.date.timeIntervalSinceReferenceDate
-            let rotation = isPlaying ? (time.truncatingRemainder(dividingBy: 2.0) / 2.0) * 360.0 : 0.0
+            let rotation = isPlaying ? (time.truncatingRemainder(dividingBy: rotationDuration) / rotationDuration) * 360.0 : 0.0
             
             ZStack {
                 LuneLogoDiamondsShape()

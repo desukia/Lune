@@ -36,7 +36,7 @@ public struct AboutView: View {
             VStack(spacing: 24) {
                 // MARK: - Logo Section
                 VStack(spacing: 12) {
-                    LuneAnimatedLogo(isPlaying: true, tintColor: colors.onSurface, size: 140)
+                    LuneAnimatedLogo(isPlaying: true, tintColor: colors.onSurface, size: 140, rotationDuration: 10.0)
                         .shadow(color: colors.onSurface.opacity(0.18), radius: 24, x: 0, y: 8)
                         .padding(.top, 16)
                     

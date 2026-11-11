@@ -109,6 +109,8 @@ public final class DataStore: @unchecked Sendable {
         let copy = playlists
         lock.unlock()
         if let encoded = try? JSONEncoder().encode(copy) {
+            let dir = playlistsFileURL.deletingLastPathComponent()
+            try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
             try? encoded.write(to: playlistsFileURL, options: .atomic)
         }
     }
@@ -131,6 +133,8 @@ public final class DataStore: @unchecked Sendable {
         let copy = favorites
         lock.unlock()
         if let encoded = try? JSONEncoder().encode(copy) {
+            let dir = favoritesFileURL.deletingLastPathComponent()
+            try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
             try? encoded.write(to: favoritesFileURL, options: .atomic)
         }
     }

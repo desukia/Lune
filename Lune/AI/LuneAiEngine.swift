@@ -506,7 +506,7 @@ public final class LuneAiEngine: ObservableObject {
             if spotlight.count >= 3 {
                 generated.append(
                     AiMix(
-                        id: "ai_artist_\(top.key.hashValue)",
+                        id: "ai_artist_\(LuneIdGenerator.stableId(for: top.key))",
                         title: "Radio: \(top.key)",
                         subtitle: "Best of \(top.key) & kindred artists",
                         category: .artistSpotlight,
