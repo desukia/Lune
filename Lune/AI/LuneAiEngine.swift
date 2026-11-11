@@ -337,8 +337,8 @@ public final class LuneAiEngine: ObservableObject {
             let isWeekend = dayType == .weekend
             
             // Fast profile cache to avoid redundant regex profiling
-            var profiles: [Int64: SongProfile] = [:]
-            func getProfile(_ song: Song) -> SongProfile {
+            var profiles: [Int64: AudioProfile] = [:]
+            func getProfile(_ song: Song) -> AudioProfile {
                 if let p = profiles[song.id] { return p }
                 let p = self.profileSong(song)
                 profiles[song.id] = p
