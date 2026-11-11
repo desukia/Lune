@@ -14,6 +14,7 @@ public struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     
     @State private var showResetAlert: Bool = false
+    @State private var showFileImporter: Bool = false
     
     public init(settings: SettingsManager, library: MusicLibraryManager) {
         self.settings = settings
@@ -64,6 +65,16 @@ public struct SettingsView: View {
                     Toggle("Hi-Fi / Hi-Res Badges", isOn: $settings.hifiBadgeEnabled)
                     
                     Button {
+                        showFileImporter = true
+                    } label: {
+                        HStack {
+                            Text("Import Audio Files / Folders")
+                            Spacer()
+                            Image(systemName: "plus.circle")
+                        }
+                    }
+                    
+                    Button {
                         Task { await library.scanLibrary() }
                     } label: {
                         HStack {
@@ -110,6 +121,17 @@ public struct SettingsView: View {
                 Button("Cancel", role: .cancel) {}
             } message: {
                 Text("This will clear all learned listening habits and Markov transitions.")
+            }
+            .fileImporter(
+                isPresented: $showFileImporter,
+                allowedContentTypes: [.audio, .folder],
+                allowsMultipleSelection: true
+            ) { result in
+                if case .success(let urls) = result {
+                    Task {
+                        await library.importAudioFiles(from: urls)
+                    }
+                }
             }
         }
     }

@@ -23,6 +23,7 @@ public struct MainView: View {
     @State private var showSettings: Bool = false
     @State private var showSectionMenu: Bool = false
     @State private var showSearch: Bool = false
+    @State private var showFileImporter: Bool = false
     
     @Environment(\.colorScheme) private var colorScheme
     
@@ -145,6 +146,17 @@ public struct MainView: View {
             .fullScreenCover(isPresented: $showNowPlaying) {
                 NowPlayingView(player: player, settings: settings)
             }
+            .fileImporter(
+                isPresented: $showFileImporter,
+                allowedContentTypes: [.audio, .folder],
+                allowsMultipleSelection: true
+            ) { result in
+                if case .success(let urls) = result {
+                    Task {
+                        await library.importAudioFiles(from: urls)
+                    }
+                }
+            }
         }
     }
     
@@ -162,9 +174,14 @@ public struct MainView: View {
             
             Spacer()
             
-            // Trailing Action Buttons: Chevron, Theme Toggle & Settings (1:1 with Android Lune)
+            // Trailing Action Buttons: Import, Chevron, Theme Toggle & Settings (1:1 with Android Lune)
             HStack(spacing: 8) {
-                // 1. Collapse / Section Header toggle
+                // 1. One-touch Add/Import Music from Files
+                topBarButton(icon: "plus", colors: colors) {
+                    showFileImporter = true
+                }
+                
+                // 2. Collapse / Section Header toggle
                 topBarButton(icon: "chevron.up", colors: colors) {
                     UIImpactFeedbackGenerator(style: .light).impactOccurred()
                 }

@@ -158,7 +158,7 @@ public struct SongsListView: View {
         }
         .fileImporter(
             isPresented: $showFileImporter,
-            allowedContentTypes: [.audio],
+            allowedContentTypes: [.audio, .folder],
             allowsMultipleSelection: true
         ) { result in
             if case .success(let urls) = result {
@@ -289,6 +289,22 @@ public struct SongsListView: View {
                     .overlay(
                         Image(systemName: "arrow.up.arrow.down")
                             .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(colors.onSecondaryContainer)
+                    )
+            }
+            .buttonStyle(M3BounceButtonStyle())
+            
+            // 4. One-touch Add / Import Audio Files button
+            Button {
+                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                showFileImporter = true
+            } label: {
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .fill(colors.secondaryContainer)
+                    .frame(width: 44, height: 44)
+                    .overlay(
+                        Image(systemName: "plus")
+                            .font(.system(size: 18, weight: .bold))
                             .foregroundColor(colors.onSecondaryContainer)
                     )
             }

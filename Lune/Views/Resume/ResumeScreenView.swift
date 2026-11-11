@@ -24,6 +24,7 @@ public struct ResumeScreenView: View {
     @State private var selectedGenre: GenreItem? = nil
     @State private var selectedAlbum: Album? = nil
     @State private var recommendations: [Song] = []
+    @State private var showFileImporter: Bool = false
     
     let onTapHero: () -> Void
     let onNavigateToAllSongs: () -> Void
@@ -155,15 +156,75 @@ public struct ResumeScreenView: View {
         .onChange(of: library.allSongs) { _, newSongs in
             recommendations = newSongs.shuffled()
         }
+        .fileImporter(
+            isPresented: $showFileImporter,
+            allowedContentTypes: [.audio, .folder],
+            allowsMultipleSelection: true
+        ) { result in
+            if case .success(let urls) = result {
+                Task {
+                    await library.importAudioFiles(from: urls)
+                }
+            }
+        }
     }
     
     // MARK: - Hero Section (1:1 Android Lune HeroSection.kt)
     
+    @ViewBuilder
     private var heroSection: some View {
         let colors = settings.resolveColors(for: colorScheme)
         let activeSong = player.currentSong ?? library.allSongs.first
         
-        return VStack(spacing: 12) {
+        if library.allSongs.isEmpty {
+            VStack(spacing: 14) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 24, style: .continuous)
+                        .fill(colors.secondaryContainer)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                                .stroke(colors.outlineVariant.opacity(0.20), lineWidth: 1)
+                        )
+                    
+                    VStack(spacing: 12) {
+                        Image(systemName: "music.note.house.fill")
+                            .font(.system(size: 40))
+                            .foregroundColor(colors.primary)
+                        
+                        Text("Sua biblioteca está vazia")
+                            .font(.custom("Quicksand-Bold", size: 18))
+                            .foregroundColor(colors.onSecondaryContainer)
+                        
+                        Text("Adicione arquivos de áudio (MP3, FLAC, M4A, WAV) do app Arquivos, iCloud ou solte-os na pasta Lune.")
+                            .font(.custom("Quicksand-Regular", size: 13))
+                            .foregroundColor(colors.onSecondaryContainer.opacity(0.75))
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 20)
+                        
+                        Button {
+                            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                            showFileImporter = true
+                        } label: {
+                            HStack(spacing: 8) {
+                                Image(systemName: "plus.circle.fill")
+                                Text("Adicionar Músicas / Importar")
+                                    .font(.custom("Quicksand-Bold", size: 14))
+                            }
+                            .foregroundColor(colors.onPrimary)
+                            .padding(.horizontal, 22)
+                            .padding(.vertical, 12)
+                            .background(colors.primary)
+                            .clipShape(Capsule())
+                        }
+                        .buttonStyle(M3BounceButtonStyle())
+                    }
+                    .padding(.vertical, 24)
+                    .padding(.horizontal, 16)
+                }
+                .padding(.horizontal, 16)
+            }
+        } else {
+            VStack(spacing: 12) {
             // MARK: 1. Tops Summary Hero Card (190dp height, 24dp corner, 9-sided flower artwork)
             ZStack {
                 RoundedRectangle(cornerRadius: 24, style: .continuous)
@@ -346,6 +407,7 @@ public struct ResumeScreenView: View {
                 .padding(.horizontal, 16)
             }
         }
+    }
     }
     
     // MARK: - AI Recommendations Carousel (1:1 Android Carousel 200dp height, 24dp corner)

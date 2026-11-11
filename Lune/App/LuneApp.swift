@@ -17,6 +17,11 @@ struct LuneApp: App {
             MainView()
                 .preferredColorScheme(resolvedColorScheme)
                 .tint(settings.resolveColors(for: .dark).primary)
+                .onOpenURL { url in
+                    Task {
+                        await MusicLibraryManager.shared.importAudioFiles(from: [url])
+                    }
+                }
         }
     }
     

@@ -34,10 +34,12 @@ public final class MusicLibraryManager: ObservableObject {
         DataStore.shared.getAllPlaylists()
     }
     
+    private let documentsURL: URL
     private let musicFolderURL: URL
     
     private init() {
         let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+        self.documentsURL = docs
         self.musicFolderURL = docs.appendingPathComponent("Music", isDirectory: true)
         try? FileManager.default.createDirectory(at: musicFolderURL, withIntermediateDirectories: true)
     }
@@ -48,8 +50,8 @@ public final class MusicLibraryManager: ObservableObject {
         isLoading = true
         var collectedSongs: [Song] = []
         
-        // 1. Scan Documents/Music local folder
-        let localSongs = await scanLocalDirectory(musicFolderURL)
+        // 1. Scan the entire Documents folder recursively (covers root Lune folder in Files app, Music subfolder, Downloads, etc.)
+        let localSongs = await scanLocalDirectory(documentsURL)
         collectedSongs.append(contentsOf: localSongs)
         
         // 2. Scan MPMediaQuery if authorized
@@ -213,13 +215,27 @@ public final class MusicLibraryManager: ObservableObject {
     // MARK: - File Importer
     
     public func importAudioFiles(from urls: [URL]) async {
+        let supportedExtensions = ["mp3", "m4a", "flac", "wav", "aac", "alac", "aif", "aiff", "ogg", "opus"]
+        
         for url in urls {
             let shouldStop = url.startAccessingSecurityScopedResource()
             defer { if shouldStop { url.stopAccessingSecurityScopedResource() } }
             
-            let destURL = musicFolderURL.appendingPathComponent(url.lastPathComponent)
-            try? FileManager.default.removeItem(at: destURL)
-            try? FileManager.default.copyItem(at: url, to: destURL)
+            var isDir: ObjCBool = false
+            if FileManager.default.fileExists(atPath: url.path, isDirectory: &isDir), isDir.boolValue {
+                let enumerator = FileManager.default.enumerator(at: url, includingPropertiesForKeys: nil, options: [.skipsHiddenFiles])
+                while let fileURL = enumerator?.nextObject() as? URL {
+                    if supportedExtensions.contains(fileURL.pathExtension.lowercased()) {
+                        let dest = musicFolderURL.appendingPathComponent(fileURL.lastPathComponent)
+                        try? FileManager.default.removeItem(at: dest)
+                        try? FileManager.default.copyItem(at: fileURL, to: dest)
+                    }
+                }
+            } else {
+                let dest = musicFolderURL.appendingPathComponent(url.lastPathComponent)
+                try? FileManager.default.removeItem(at: dest)
+                try? FileManager.default.copyItem(at: url, to: dest)
+            }
         }
         await scanLibrary()
     }
