@@ -52,10 +52,11 @@ public struct M3WavyProgressIndicator: View {
     }
     
     public var body: some View {
-        TimelineView(.animation(paused: !isPlaying || !isWavy || isDragging)) { timeline in
+        TimelineView(.animation(paused: !isPlaying || isDragging)) { timeline in
             let time = timeline.date.timeIntervalSinceReferenceDate
             let phase = isPlaying ? (time.truncatingRemainder(dividingBy: cycleDuration) / cycleDuration) * 2 * .pi : 0.0
-            let thumbRotation = isPlaying ? (time.truncatingRemainder(dividingBy: 2.0) / 2.0) * 360.0 : 0.0
+            // Rotation is locked 1:1 to the wave oscillation phase
+            let thumbRotation = isPlaying ? (phase / (2.0 * .pi)) * 360.0 : 0.0
             
             GeometryReader { geometry in
                 let width = geometry.size.width
@@ -66,10 +67,14 @@ public struct M3WavyProgressIndicator: View {
                 let effectiveAmplitude: CGFloat = (isPlaying && isWavy && !isDragging) ? waveAmplitude : 0.0
                 
                 ZStack(alignment: .leading) {
-                    // 1. Inactive Background Track (Full Width, height = 4.dp)
-                    Capsule()
-                        .fill(trackColor)
-                        .frame(width: width, height: trackThickness)
+                    // 1. Inactive Background Track (Only unplayed portion: activeWidth to width, no gray line behind the wave)
+                    if activeWidth < width {
+                        let unplayedWidth = max(0.0, width - activeWidth)
+                        Capsule()
+                            .fill(trackColor)
+                            .frame(width: unplayedWidth, height: trackThickness)
+                            .offset(x: activeWidth)
+                    }
                     
                     // 2. Active Wave / Track (height = 4.dp, incremental = false)
                     if activeWidth > 0 {
@@ -92,10 +97,11 @@ public struct M3WavyProgressIndicator: View {
                         }
                     }
                     
-                    // 3. Scrubber Thumb (14x14 upright squircle, 1:1 Android Lune Parity)
+                    // 3. Scrubber Thumb (14x14 squircle rotating synchronized to the wave)
                     RoundedRectangle(cornerRadius: 4.5, style: .continuous)
                         .fill(primaryColor)
                         .frame(width: 14, height: 14)
+                        .rotationEffect(.degrees((isPlaying && !isDragging) ? thumbRotation : 0))
                         .shadow(color: Color.black.opacity(0.35), radius: 2, x: 0, y: 1)
                         .offset(x: activeWidth - 7)
                 }
