@@ -203,7 +203,8 @@ public struct PlaylistsView: View {
 }
 
 // MARK: - Playlist Cover Generator (2x2 Collage of first 4 song artworks)
-public final class PlaylistCoverGenerator: @unchecked Sendable {
+@MainActor
+public final class PlaylistCoverGenerator {
     public static let shared = PlaylistCoverGenerator()
     
     private init() {}
@@ -284,6 +285,7 @@ public final class PlaylistCoverGenerator: @unchecked Sendable {
 }
 
 // MARK: - Playlist Cover View (Displays 2x2 Collage or Fallback Placeholder)
+@MainActor
 public struct PlaylistCoverView: View {
     let playlist: Playlist
     var cornerRadius: CGFloat = 16
