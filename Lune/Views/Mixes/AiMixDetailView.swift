@@ -145,5 +145,6 @@ public struct AiMixDetailView: View {
                 }
             }
         }
+        .appBlurBackground()
     }
 }

@@ -91,6 +91,7 @@ public struct QueueView: View {
                     }
                 }
             }
+            .scrollContentBackground(.hidden)
             .navigationTitle("Play Queue".localized)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -103,6 +104,7 @@ public struct QueueView: View {
                 }
             }
         }
+        .appBlurBackground()
     }
     
     private var upNextSongs: [Song] {

@@ -164,7 +164,7 @@ public struct AboutView: View {
                 .padding(.bottom, 40)
             }
         }
-        .background(colors.background.ignoresSafeArea())
+        .appBlurBackground()
         .navigationTitle("About".localized)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -301,7 +301,7 @@ public struct AboutView: View {
                 }
                 .padding(.horizontal, 20)
             }
-            .background(colors.background.ignoresSafeArea())
+            .appBlurBackground()
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Cancel") {

@@ -546,3 +546,63 @@ public struct LuneLogoNoteShape: Shape {
         return path
     }
 }
+
+// MARK: - Global Ambient Artwork Blur Backdrop
+@MainActor
+public struct LuneAmbientBackdrop: View {
+    @ObservedObject private var player: AudioPlayerManager
+    @ObservedObject private var library: MusicLibraryManager
+    @ObservedObject private var settings: SettingsManager
+    @Environment(\.colorScheme) private var colorScheme
+    
+    public init(
+        player: AudioPlayerManager = .shared,
+        library: MusicLibraryManager = .shared,
+        settings: SettingsManager = .shared
+    ) {
+        self.player = player
+        self.library = library
+        self.settings = settings
+    }
+    
+    public var body: some View {
+        let colors = settings.resolveColors(for: colorScheme)
+        let activeSong = player.currentSong ?? library.allSongs.first
+        
+        ZStack {
+            (colors.isDark ? Color.black : colors.background)
+            
+            if let song = activeSong,
+               let img = ArtworkCache.shared.image(for: song.id, data: song.artworkData) {
+                GeometryReader { geo in
+                    Image(uiImage: img)
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: geo.size.width, height: geo.size.height)
+                        .clipped()
+                        .blur(radius: 45)
+                        .opacity(colors.isDark ? 0.38 : 0.16)
+                        .overlay(
+                            colors.isDark ? Color.black.opacity(0.48) : Color.white.opacity(0.72)
+                        )
+                }
+                .animation(.easeInOut(duration: 0.35), value: player.currentSong?.id)
+            }
+        }
+        .ignoresSafeArea()
+    }
+}
+
+public struct AppBlurBackgroundModifier: ViewModifier {
+    public func body(content: Content) -> some View {
+        content
+            .scrollContentBackground(.hidden)
+            .background(LuneAmbientBackdrop())
+    }
+}
+
+public extension View {
+    func appBlurBackground() -> some View {
+        modifier(AppBlurBackgroundModifier())
+    }
+}

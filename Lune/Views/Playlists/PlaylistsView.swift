@@ -477,6 +477,7 @@ public struct PlaylistDetailView: View {
                 }
             }
         }
+        .appBlurBackground()
         .navigationTitle(playlist.name)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {

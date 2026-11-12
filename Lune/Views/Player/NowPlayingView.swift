@@ -190,6 +190,23 @@ public struct NowPlayingView: View {
                         .frame(width: screenWidth)
                         .frame(maxHeight: .infinity)
                         .transition(.opacity)
+                } else if settings.fullScreenCover {
+                    Color.clear
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .contentShape(Rectangle())
+                        .gesture(
+                            DragGesture(minimumDistance: 30)
+                                .onEnded { val in
+                                    if val.translation.width < -50 {
+                                        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                                        player.next()
+                                    } else if val.translation.width > 50 {
+                                        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                                        player.previous()
+                                    }
+                                }
+                        )
+                        .transition(.opacity)
                 } else {
                     artworkContentView(coverSize: coverSize, isCompact: isCompact)
                         .frame(width: screenWidth)
@@ -250,20 +267,59 @@ public struct NowPlayingView: View {
             // 1. Material 3 Adaptive Background (Pure Black in Dark, Pure White in Light)
             (colors.isDark ? Color.black : colors.background)
             
-            // 2. Global Artwork Blur Background (1:1 Android FullPlayer Parity)
+            // 2. Artwork Background (Full-Screen Album Art or Ambient Blur Backdrop)
             let activeSong = player.currentSong ?? library.allSongs.first
             if let song = activeSong,
                let img = ArtworkCache.shared.image(for: song.id, data: song.artworkData) {
-                Image(uiImage: img)
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .frame(width: screenWidth, height: screenHeight)
-                    .clipped()
-                    .blur(radius: 45)
-                    .opacity(colors.isDark ? 0.38 : 0.16)
-                    .overlay(
-                        colors.isDark ? Color.black.opacity(0.48) : Color.white.opacity(0.72)
-                    )
+                if settings.fullScreenCover {
+                    Image(uiImage: img)
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: screenWidth, height: screenHeight)
+                        .clipped()
+                        .overlay(
+                            LinearGradient(
+                                colors: [
+                                    Color.black.opacity(0.75),
+                                    Color.black.opacity(0.35),
+                                    Color.clear
+                                ],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                            .frame(height: 180),
+                            alignment: .top
+                        )
+                        .overlay(
+                            LinearGradient(
+                                colors: [
+                                    Color.clear,
+                                    Color.black.opacity(0.40),
+                                    Color.black.opacity(0.85),
+                                    Color.black.opacity(0.96)
+                                ],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                            .frame(height: screenHeight * 0.58),
+                            alignment: .bottom
+                        )
+                        .blur(radius: activeMode == .lyrics ? 35 : 0)
+                        .overlay(
+                            activeMode == .lyrics ? Color.black.opacity(0.45) : Color.clear
+                        )
+                } else {
+                    Image(uiImage: img)
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: screenWidth, height: screenHeight)
+                        .clipped()
+                        .blur(radius: 45)
+                        .opacity(colors.isDark ? 0.38 : 0.16)
+                        .overlay(
+                            colors.isDark ? Color.black.opacity(0.48) : Color.white.opacity(0.72)
+                        )
+                }
             }
             
             // 3. Main Player Layout (Unified Controls Screen: Artwork <-> Lyrics with Smooth Transition)
@@ -283,6 +339,23 @@ public struct NowPlayingView: View {
                                 insertion: .opacity.combined(with: .scale(scale: 0.96)),
                                 removal: .opacity.combined(with: .scale(scale: 0.96))
                             ))
+                    } else if settings.fullScreenCover {
+                        Color.clear
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .contentShape(Rectangle())
+                            .gesture(
+                                DragGesture(minimumDistance: 30)
+                                    .onEnded { val in
+                                        if val.translation.width < -50 {
+                                            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                                            player.next()
+                                        } else if val.translation.width > 50 {
+                                            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                                            player.previous()
+                                        }
+                                    }
+                            )
+                            .transition(.opacity)
                     } else {
                         VStack(spacing: 0) {
                             Spacer(minLength: 8)
@@ -342,9 +415,11 @@ public struct NowPlayingView: View {
     
     // MARK: - M3 Subviews (1:1 Android Lune Parity)
     private func m3TopHeaderBar(colors: LuneColorScheme) -> some View {
-        let isDark = colors.isDark
+        let isDark = colors.isDark || settings.fullScreenCover
         let pillBg = isDark ? Color.black.opacity(0.45) : Color.black.opacity(0.08)
         let iconTint = isDark ? Color.white.opacity(0.85) : Color(hex: 0x141414)
+        let textPrimary = isDark ? Color.white : colors.onSurface
+        let textSecondary = isDark ? Color.white.opacity(0.70) : colors.onSurfaceVariant
         
         return HStack(spacing: 10) {
             // Left: Add To Playlist Button
@@ -368,11 +443,11 @@ public struct NowPlayingView: View {
                 Text(activeMode == .lyrics ? "LIVE LYRICS".localized : "PLAYING FROM".localized)
                     .font(.custom("Quicksand-Bold", size: 10))
                     .tracking(1.0)
-                    .foregroundColor(colors.onSurfaceVariant)
+                    .foregroundColor(textSecondary)
                 
                 Text(player.currentSong?.album.isEmpty == false ? player.currentSong!.album : "All Songs".localized)
                     .font(.custom("Quicksand-Bold", size: 16))
-                    .foregroundColor(colors.onSurface)
+                    .foregroundColor(textPrimary)
                     .lineLimit(1)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -475,23 +550,25 @@ public struct NowPlayingView: View {
     }
     
     private func m3TrackInfoRow(colors: LuneColorScheme) -> some View {
-        let isDark = colors.isDark
+        let isDark = colors.isDark || settings.fullScreenCover
         let badgePillBg = isDark ? Color.black.opacity(0.45) : Color.black.opacity(0.08)
         let iconTint = isDark ? Color.white.opacity(0.85) : Color(hex: 0x141414)
+        let textPrimary = isDark ? Color.white : colors.onSurface
+        let textSecondary = isDark ? Color.white.opacity(0.70) : colors.onSurfaceVariant
         
         return HStack(alignment: .center, spacing: 12) {
             VStack(alignment: .leading, spacing: 6) {
                 // Song Title
                 Text(player.currentSong?.title ?? "No Song Playing".localized)
                     .font(.custom("Quicksand-Bold", size: 24))
-                    .foregroundColor(colors.onSurface)
+                    .foregroundColor(textPrimary)
                     .lineLimit(1)
                 
                 // Chips Row (Artist, Hi-Fi, Format)
                 HStack(spacing: 6) {
                     Text(player.currentSong?.artist ?? "Unknown Artist".localized)
                         .font(.custom("Quicksand-Bold", size: 12))
-                        .foregroundColor(colors.onSurface)
+                        .foregroundColor(textPrimary)
                         .padding(.horizontal, 12)
                         .padding(.vertical, 4)
                         .background(isDark ? Color.white.opacity(0.14) : Color.black.opacity(0.08))
@@ -510,7 +587,7 @@ public struct NowPlayingView: View {
                     
                     Text(player.currentSong?.isHiFi == true ? "FLAC" : "MP3")
                         .font(.system(size: 10, weight: .bold))
-                        .foregroundColor(colors.onSurfaceVariant)
+                        .foregroundColor(textSecondary)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 4)
                         .background(isDark ? Color.white.opacity(0.12) : Color.black.opacity(0.06))
@@ -535,7 +612,7 @@ public struct NowPlayingView: View {
                         .overlay(
                             Image(systemName: "music.note.list")
                                 .font(.system(size: 20, weight: .semibold))
-                                .foregroundColor(activeMode == .lyrics ? colors.onSurface : iconTint)
+                                .foregroundColor(activeMode == .lyrics ? textPrimary : iconTint)
                         )
                 }
                 .buttonStyle(M3BounceButtonStyle())
@@ -565,7 +642,7 @@ public struct NowPlayingView: View {
     }
     
     private func m3ProgressSection(colors: LuneColorScheme) -> some View {
-        let isDark = colors.isDark
+        let isDark = colors.isDark || settings.fullScreenCover
         let sliderColor = isDark ? Color.white : Color(hex: 0x141414)
         let trackColor = isDark ? Color.white.opacity(0.24) : Color.black.opacity(0.18)
         let badgeBg = isDark ? Color.black.opacity(0.50) : Color.black.opacity(0.08)
@@ -609,7 +686,7 @@ public struct NowPlayingView: View {
     }
     
     private func m3ControlsRow(colors: LuneColorScheme) -> some View {
-        let isDark = colors.isDark
+        let isDark = colors.isDark || settings.fullScreenCover
         let playBtnBg = isDark ? Color.white : Color(hex: 0x141414)
         let playBtnFg = isDark ? Color.black : Color.white
         let skipBtnBg = isDark ? Color.black.opacity(0.40) : Color.black.opacity(0.08)
@@ -733,7 +810,9 @@ public struct NowPlayingView: View {
         colors: LuneColorScheme,
         action: @escaping () -> Void
     ) -> some View {
-        let isDark = colors.isDark
+        let isDark = colors.isDark || settings.fullScreenCover
+        let textPrimary = isDark ? Color.white : colors.onSurface
+        let textSecondary = isDark ? Color.white.opacity(0.70) : colors.onSurfaceVariant
         
         return Button {
             UIImpactFeedbackGenerator(style: .light).impactOccurred()
@@ -751,13 +830,13 @@ public struct NowPlayingView: View {
                     
                     Image(systemName: icon)
                         .font(.system(size: 15, weight: isActive ? .bold : .semibold))
-                        .foregroundColor(isActive ? (isDark ? Color.black : Color.white) : colors.onSurface)
+                        .foregroundColor(isActive ? (isDark ? Color.black : Color.white) : textPrimary)
                 }
                 .frame(width: 28, height: 28)
                 
                 Text(label)
                     .font(.custom("Quicksand-Bold", size: 11.5))
-                    .foregroundColor(isActive ? colors.onSurface : colors.onSurfaceVariant)
+                    .foregroundColor(isActive ? textPrimary : textSecondary)
                     .lineLimit(1)
             }
             .padding(.leading, 6)
@@ -809,7 +888,7 @@ public struct NowPlayingView: View {
     }
     
     private func m3LyricsContentView(colors: LuneColorScheme) -> some View {
-        let isDark = colors.isDark
+        let isDark = colors.isDark || settings.fullScreenCover
         let activeIdx = lyricsManager.findActiveLineIndex(
             lines: lyricsManager.lines,
             currentTime: player.currentTime + (lyricsOffsetMs / 1000.0)
@@ -1730,13 +1809,22 @@ public struct NowPlayingView: View {
             
             if let song = player.currentSong,
                let uiImage = ArtworkCache.shared.image(for: song.id, data: song.artworkData) {
-                Image(uiImage: uiImage)
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .frame(width: width, height: height)
-                    .clipped()
-                    .blur(radius: 40)
-                    .opacity(0.65)
+                if settings.fullScreenCover {
+                    Image(uiImage: uiImage)
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: width, height: height)
+                        .clipped()
+                        .blur(radius: activeMode == .lyrics ? 35 : 0)
+                } else {
+                    Image(uiImage: uiImage)
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: width, height: height)
+                        .clipped()
+                        .blur(radius: 40)
+                        .opacity(0.65)
+                }
             } else {
                 LinearGradient(
                     colors: [

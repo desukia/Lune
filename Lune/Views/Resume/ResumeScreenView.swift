@@ -305,7 +305,7 @@ public struct ResumeScreenView: View {
                                     .font(.system(size: 10, weight: .bold))
                                     .foregroundColor(colors.onSecondaryContainer.opacity(0.85))
                                 
-                                Text("TOP SONG".localized + " • " + "%d plays".localized(topSongItem.plays))
+                                Text(topSongItem.plays > 0 ? ("TOP SONG".localized + " • " + "%d plays".localized(topSongItem.plays)) : "TOP SONG".localized)
                                     .font(.custom("Quicksand-Bold", size: 9.5))
                                     .tracking(0.6)
                                     .foregroundColor(colors.onSecondaryContainer.opacity(0.85))
@@ -720,6 +720,20 @@ public struct ResumeScreenView: View {
     }
     
     private var topArtistItem: (name: String, count: Int, artworkData: Data?) {
+        let interactions = AiTelemetryStorage.shared.getAllInteractions().filter { $0.playCount > 0 }
+        var artistPlays: [String: Int] = [:]
+        for interaction in interactions {
+            if let song = library.allSongs.first(where: { $0.id == interaction.songId }) {
+                artistPlays[song.artist, default: 0] += interaction.playCount
+            }
+        }
+        
+        if let topArtistName = artistPlays.max(by: { $0.value < $1.value })?.key {
+            let artistSongs = library.allSongs.filter { $0.artist == topArtistName }
+            let artwork = artistSongs.first(where: { $0.artworkData != nil })?.artworkData
+            return (topArtistName, artistSongs.count, artwork)
+        }
+        
         guard let first = library.artists.first else {
             return ("Unknown Artist".localized, 0, nil)
         }
@@ -727,13 +741,35 @@ public struct ResumeScreenView: View {
     }
     
     private var topSongItem: (title: String, plays: Int, artworkData: Data?) {
+        let interactions = AiTelemetryStorage.shared.getAllInteractions()
+            .filter { $0.playCount > 0 }
+            .sorted { $0.playCount > $1.playCount }
+        
+        for interaction in interactions {
+            if let song = library.allSongs.first(where: { $0.id == interaction.songId }) {
+                return (song.title, interaction.playCount, song.artworkData)
+            }
+        }
+        
         guard let first = library.allSongs.first else {
             return ("No Plays Yet".localized, 0, nil)
         }
-        return (first.title, 5, first.artworkData)
+        return ("No Plays Yet".localized, 0, first.artworkData)
     }
     
     private var topGenreItem: String {
-        library.genres.first ?? "Pop"
+        let interactions = AiTelemetryStorage.shared.getAllInteractions().filter { $0.playCount > 0 }
+        var genrePlays: [String: Int] = [:]
+        for interaction in interactions {
+            if let song = library.allSongs.first(where: { $0.id == interaction.songId }),
+               let genre = song.genre, !genre.isEmpty {
+                genrePlays[genre, default: 0] += interaction.playCount
+            }
+        }
+        
+        if let topGenre = genrePlays.max(by: { $0.value < $1.value })?.key {
+            return topGenre
+        }
+        return library.genres.first ?? "Various".localized
     }
 }

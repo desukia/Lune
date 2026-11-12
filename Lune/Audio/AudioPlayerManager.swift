@@ -73,6 +73,7 @@ public final class AudioPlayerManager: ObservableObject {
     private var seekFrame: AVAudioFramePosition = 0
     private var isSeeking: Bool = false
     private var playbackGeneration: Int = 0
+    private var isEndingSong: Bool = false
     
     private init() {
         setupAudioSession()
@@ -200,6 +201,13 @@ public final class AudioPlayerManager: ObservableObject {
             self.sampleRate = file.processingFormat.sampleRate
             self.lengthSamples = file.length
             self.seekFrame = 0
+            if file.processingFormat.sampleRate > 0 && file.length > 0 {
+                let exactDuration = Double(file.length) / file.processingFormat.sampleRate
+                if exactDuration > 0.5 {
+                    self.duration = exactDuration
+                }
+            }
+            self.isEndingSong = false
             
             scheduleBuffer(from: 0)
             playerNode.play()
@@ -237,13 +245,15 @@ public final class AudioPlayerManager: ObservableObject {
             file,
             startingFrame: frame,
             frameCount: framesToRead,
-            at: nil
-        ) { [weak self] in
+            at: nil,
+            completionCallbackType: .dataPlayedBack
+        ) { [weak self] callbackType in
             Task { @MainActor [weak self] in
                 guard let self = self else { return }
                 // Discard completion handler if playback was stopped, skipped, or seeked
                 guard self.playbackGeneration == currentGeneration else { return }
                 guard !self.isSeeking else { return }
+                guard callbackType == .dataPlayedBack else { return }
                 
                 self.playbackGeneration += 1
                 self.handleSongEnded()
@@ -384,6 +394,9 @@ public final class AudioPlayerManager: ObservableObject {
     }
     
     private func handleSongEnded() {
+        guard !isEndingSong else { return }
+        isEndingSong = true
+        defer { isEndingSong = false }
         if let current = currentSong {
             LuneAiEngine.shared.onSongCompleted(current)
         }
@@ -452,10 +465,13 @@ public final class AudioPlayerManager: ObservableObject {
                         self.playbackProgress = 1.0
                     }
                     
-                    if self.duration > 1.0 && seconds >= self.duration {
+                    if self.duration > 1.0 && seconds >= (self.duration - 0.35) {
                         self.playbackGeneration += 1
                         self.handleSongEnded()
                     }
+                } else if self.duration > 1.0 && self.currentTime > 1.0 && !self.playerNode.isPlaying && !self.isSeeking {
+                    self.playbackGeneration += 1
+                    self.handleSongEnded()
                 }
             }
         }

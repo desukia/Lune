@@ -49,6 +49,12 @@ public final class AiTelemetryStorage: @unchecked Sendable {
         return fresh
     }
     
+    public func getAllInteractions() -> [SongInteraction] {
+        lock.lock()
+        defer { lock.unlock() }
+        return Array(cache.values)
+    }
+    
     public func recordInteraction(songId: Int64, mutate: (inout SongInteraction) -> Void) {
         lock.lock()
         var interaction = cache[songId] ?? SongInteraction(songId: songId)

@@ -55,6 +55,7 @@ public final class SettingsManager: ObservableObject {
     @AppStorage("cover_shape") public var coverShape: PlayerCoverShape = .rounded
     @AppStorage("vinyl_spin") public var vinylSpin: Bool = true
     @AppStorage("progress_bar_wave") public var progressBarWave: Bool = true
+    @AppStorage("full_screen_cover") public var fullScreenCover: Bool = false
     @AppStorage("player_blur_mode") public var playerBlurMode: PlayerBlurMode = .cinematic
     
     @AppStorage("hifi_badge_enabled") public var hifiBadgeEnabled: Bool = true

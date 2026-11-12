@@ -70,6 +70,7 @@ public struct EqualizerView: View {
                 }
             }
         }
+        .appBlurBackground()
     }
     
     // MARK: - Subsections

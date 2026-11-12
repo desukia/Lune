@@ -41,6 +41,8 @@ public struct SettingsView: View {
                 
                 // MARK: - Player Customization
                 Section(header: Text("Now Playing Player".localized).font(.custom("Quicksand-Bold", size: 12))) {
+                    Toggle("Full Screen Album Art".localized, isOn: $settings.fullScreenCover)
+                    
                     Picker("Cover Art Shape".localized, selection: $settings.coverShape) {
                         ForEach(PlayerCoverShape.allCases) { shape in
                             Text(shape.name).tag(shape)
@@ -106,6 +108,7 @@ public struct SettingsView: View {
                     }
                 }
             }
+            .scrollContentBackground(.hidden)
             .navigationTitle("Settings".localized)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -134,5 +137,6 @@ public struct SettingsView: View {
                 }
             }
         }
+        .appBlurBackground()
     }
 }
