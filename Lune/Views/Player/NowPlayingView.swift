@@ -271,7 +271,18 @@ public struct NowPlayingView: View {
             let activeSong = player.currentSong ?? library.allSongs.first
             if let song = activeSong,
                let img = ArtworkCache.shared.image(for: song.id, data: song.artworkData) {
-                if settings.fullScreenCover {
+                if activeMode == .lyrics {
+                    // Apple Music Live Lyrics Backdrop: Immersive full-screen ambient artwork bloom
+                    Image(uiImage: img)
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: screenWidth, height: screenHeight)
+                        .clipped()
+                        .blur(radius: 60)
+                        .overlay(
+                            Color.black.opacity(0.55)
+                        )
+                } else if settings.fullScreenCover {
                     ZStack {
                         // 1. Sharp full-screen cover
                         Image(uiImage: img)
@@ -373,17 +384,6 @@ public struct NowPlayingView: View {
                             .frame(height: max(safeBottom + 270, screenHeight * 0.48))
                         }
                         .frame(width: screenWidth, height: screenHeight)
-                        
-                        // 5. Full blur when Live Lyrics are open
-                        if activeMode == .lyrics {
-                            Image(uiImage: img)
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
-                                .frame(width: screenWidth, height: screenHeight)
-                                .clipped()
-                                .blur(radius: 40)
-                                .overlay(Color.black.opacity(0.45))
-                        }
                     }
                     .frame(width: screenWidth, height: screenHeight)
                     .clipped()
@@ -1181,11 +1181,10 @@ public struct NowPlayingView: View {
                                                 .foregroundColor(
                                                     isActive
                                                         ? colors.onSurface
-                                                        : colors.onSurface.opacity(lyricsManager.isSynced ? 0.35 : 0.70)
+                                                        : colors.onSurface.opacity(lyricsManager.isSynced ? 0.40 : 0.70)
                                                 )
                                                 .multilineTextAlignment(lyricsAlignment)
                                                 .lineSpacing(4)
-                                                .blur(radius: (lyricsManager.isSynced && !isActive) ? 0.85 : 0)
                                                 .shadow(
                                                     color: isActive ? (isDark ? colors.primary.opacity(0.35) : colors.primary.opacity(0.18)) : Color.clear,
                                                     radius: isActive ? 12 : 0,
@@ -1574,10 +1573,9 @@ public struct NowPlayingView: View {
                                         } else {
                                             Text(line.text)
                                                 .font(.system(size: isActive ? 31 : 23, weight: isActive ? .heavy : .bold, design: .rounded))
-                                                .foregroundColor(isActive ? Color.white : Color.white.opacity(lyricsManager.isSynced ? 0.35 : 0.72))
+                                                .foregroundColor(isActive ? Color.white : Color.white.opacity(lyricsManager.isSynced ? 0.40 : 0.72))
                                                 .multilineTextAlignment(.leading)
                                                 .lineSpacing(4)
-                                                .blur(radius: (lyricsManager.isSynced && !isActive) ? 0.85 : 0)
                                                 .shadow(color: isActive ? Color.white.opacity(0.30) : Color.clear, radius: 12, x: 0, y: 0)
                                                 .padding(.vertical, isActive ? 6 : 2)
                                         }
@@ -1888,7 +1886,15 @@ public struct NowPlayingView: View {
             
             if let song = player.currentSong,
                let uiImage = ArtworkCache.shared.image(for: song.id, data: song.artworkData) {
-                if settings.fullScreenCover {
+                if activeMode == .lyrics {
+                    Image(uiImage: uiImage)
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: width, height: height)
+                        .clipped()
+                        .blur(radius: 60)
+                        .overlay(Color.black.opacity(0.55))
+                } else if settings.fullScreenCover {
                     ZStack {
                         Image(uiImage: uiImage)
                             .resizable()
@@ -1933,16 +1939,6 @@ public struct NowPlayingView: View {
                                 }
                                 .frame(width: width, height: height)
                             )
-                        
-                        if activeMode == .lyrics {
-                            Image(uiImage: uiImage)
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
-                                .frame(width: width, height: height)
-                                .clipped()
-                                .blur(radius: 40)
-                                .overlay(Color.black.opacity(0.45))
-                        }
                     }
                     .frame(width: width, height: height)
                     .clipped()

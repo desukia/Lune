@@ -162,11 +162,10 @@ public struct LyricsView: View {
                                                         .foregroundColor(
                                                             isActive
                                                                 ? colors.onSurface
-                                                                : colors.onSurface.opacity(lyricsManager.isSynced ? 0.35 : 0.72)
+                                                                : colors.onSurface.opacity(lyricsManager.isSynced ? 0.40 : 0.72)
                                                         )
                                                         .multilineTextAlignment(textAlign)
                                                         .lineSpacing(4)
-                                                        .blur(radius: (lyricsManager.isSynced && !isActive) ? 0.85 : 0)
                                                         .shadow(
                                                             color: isActive
                                                                 ? (isDark ? colors.primary.opacity(0.35) : colors.primary.opacity(0.18))
