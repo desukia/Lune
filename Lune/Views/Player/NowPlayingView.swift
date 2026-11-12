@@ -272,42 +272,121 @@ public struct NowPlayingView: View {
             if let song = activeSong,
                let img = ArtworkCache.shared.image(for: song.id, data: song.artworkData) {
                 if settings.fullScreenCover {
-                    Image(uiImage: img)
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                        .frame(width: screenWidth, height: screenHeight)
-                        .clipped()
-                        .overlay(
+                    ZStack {
+                        // 1. Sharp full-screen cover
+                        Image(uiImage: img)
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: screenWidth, height: screenHeight)
+                            .clipped()
+                        
+                        // 2. Progressive blur overlay near top buttons and bottom buttons
+                        Image(uiImage: img)
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: screenWidth, height: screenHeight)
+                            .clipped()
+                            .blur(radius: 38)
+                            .mask(
+                                VStack(spacing: 0) {
+                                    // Top blur region (behind top header buttons)
+                                    LinearGradient(
+                                        colors: [
+                                            Color.black,
+                                            Color.black.opacity(0.95),
+                                            Color.black.opacity(0.60),
+                                            Color.clear
+                                        ],
+                                        startPoint: .top,
+                                        endPoint: .bottom
+                                    )
+                                    .frame(height: max(safeTop + 80, 160))
+                                    
+                                    Spacer(minLength: 0)
+                                    
+                                    // Bottom blur region (behind bottom controls buttons)
+                                    LinearGradient(
+                                        colors: [
+                                            Color.clear,
+                                            Color.black.opacity(0.50),
+                                            Color.black.opacity(0.95),
+                                            Color.black
+                                        ],
+                                        startPoint: .top,
+                                        endPoint: .bottom
+                                    )
+                                    .frame(height: max(safeBottom + 270, screenHeight * 0.48))
+                                }
+                                .frame(width: screenWidth, height: screenHeight)
+                            )
+                        
+                        // 3. Subtle frosted material sheen
+                        Rectangle()
+                            .fill(.ultraThinMaterial)
+                            .opacity(colors.isDark ? 0.35 : 0.20)
+                            .mask(
+                                VStack(spacing: 0) {
+                                    LinearGradient(
+                                        colors: [Color.black, Color.black.opacity(0.8), Color.clear],
+                                        startPoint: .top,
+                                        endPoint: .bottom
+                                    )
+                                    .frame(height: max(safeTop + 80, 160))
+                                    
+                                    Spacer(minLength: 0)
+                                    
+                                    LinearGradient(
+                                        colors: [Color.clear, Color.black.opacity(0.7), Color.black],
+                                        startPoint: .top,
+                                        endPoint: .bottom
+                                    )
+                                    .frame(height: max(safeBottom + 270, screenHeight * 0.48))
+                                }
+                                .frame(width: screenWidth, height: screenHeight)
+                            )
+                        
+                        // 4. Gradient protection for top buttons and bottom buttons legibility
+                        VStack(spacing: 0) {
                             LinearGradient(
                                 colors: [
-                                    Color.black.opacity(0.75),
+                                    Color.black.opacity(0.70),
                                     Color.black.opacity(0.35),
                                     Color.clear
                                 ],
                                 startPoint: .top,
                                 endPoint: .bottom
                             )
-                            .frame(height: 180),
-                            alignment: .top
-                        )
-                        .overlay(
+                            .frame(height: max(safeTop + 80, 160))
+                            
+                            Spacer(minLength: 0)
+                            
                             LinearGradient(
                                 colors: [
                                     Color.clear,
-                                    Color.black.opacity(0.40),
-                                    Color.black.opacity(0.85),
-                                    Color.black.opacity(0.96)
+                                    Color.black.opacity(0.35),
+                                    Color.black.opacity(0.75),
+                                    Color.black.opacity(0.92)
                                 ],
                                 startPoint: .top,
                                 endPoint: .bottom
                             )
-                            .frame(height: screenHeight * 0.58),
-                            alignment: .bottom
-                        )
-                        .blur(radius: activeMode == .lyrics ? 35 : 0)
-                        .overlay(
-                            activeMode == .lyrics ? Color.black.opacity(0.45) : Color.clear
-                        )
+                            .frame(height: max(safeBottom + 270, screenHeight * 0.48))
+                        }
+                        .frame(width: screenWidth, height: screenHeight)
+                        
+                        // 5. Full blur when Live Lyrics are open
+                        if activeMode == .lyrics {
+                            Image(uiImage: img)
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                                .frame(width: screenWidth, height: screenHeight)
+                                .clipped()
+                                .blur(radius: 40)
+                                .overlay(Color.black.opacity(0.45))
+                        }
+                    }
+                    .frame(width: screenWidth, height: screenHeight)
+                    .clipped()
                 } else {
                     Image(uiImage: img)
                         .resizable()
@@ -1810,12 +1889,63 @@ public struct NowPlayingView: View {
             if let song = player.currentSong,
                let uiImage = ArtworkCache.shared.image(for: song.id, data: song.artworkData) {
                 if settings.fullScreenCover {
-                    Image(uiImage: uiImage)
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                        .frame(width: width, height: height)
-                        .clipped()
-                        .blur(radius: activeMode == .lyrics ? 35 : 0)
+                    ZStack {
+                        Image(uiImage: uiImage)
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: width, height: height)
+                            .clipped()
+                        
+                        // Progressive blur overlay near top and bottom buttons
+                        Image(uiImage: uiImage)
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: width, height: height)
+                            .clipped()
+                            .blur(radius: 38)
+                            .mask(
+                                VStack(spacing: 0) {
+                                    LinearGradient(
+                                        colors: [
+                                            Color.black,
+                                            Color.black.opacity(0.95),
+                                            Color.black.opacity(0.60),
+                                            Color.clear
+                                        ],
+                                        startPoint: .top,
+                                        endPoint: .bottom
+                                    )
+                                    .frame(height: 160)
+                                    
+                                    Spacer(minLength: 0)
+                                    
+                                    LinearGradient(
+                                        colors: [
+                                            Color.clear,
+                                            Color.black.opacity(0.50),
+                                            Color.black.opacity(0.95),
+                                            Color.black
+                                        ],
+                                        startPoint: .top,
+                                        endPoint: .bottom
+                                    )
+                                    .frame(height: height * 0.48)
+                                }
+                                .frame(width: width, height: height)
+                            )
+                        
+                        if activeMode == .lyrics {
+                            Image(uiImage: uiImage)
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                                .frame(width: width, height: height)
+                                .clipped()
+                                .blur(radius: 40)
+                                .overlay(Color.black.opacity(0.45))
+                        }
+                    }
+                    .frame(width: width, height: height)
+                    .clipped()
                 } else {
                     Image(uiImage: uiImage)
                         .resizable()
