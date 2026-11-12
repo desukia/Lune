@@ -91,27 +91,14 @@ public struct PlaylistsView: View {
                                     selectedPlaylist = pl
                                 } label: {
                                     VStack(alignment: .leading, spacing: 8) {
-                                        Group {
-                                            if isM3 {
-                                                RoundedRectangle(cornerRadius: 18, style: .continuous)
-                                                    .fill(colors.secondaryContainer)
-                                            } else {
-                                                RoundedRectangle(cornerRadius: 18, style: .continuous)
-                                                    .fill(
-                                                        LinearGradient(
-                                                            colors: [Color(hex: 0x554492), Color(hex: 0x8C74D9)],
-                                                            startPoint: .topLeading,
-                                                            endPoint: .bottomTrailing
-                                                        )
-                                                    )
-                                            }
-                                        }
-                                        .aspectRatio(1, contentMode: .fit)
-                                        .overlay(
-                                            Image(systemName: "music.note.list")
-                                                .font(.system(size: 36))
-                                                .foregroundColor(isM3 ? colors.primary : .white)
+                                        PlaylistCoverView(
+                                            playlist: pl,
+                                            cornerRadius: 18,
+                                            isM3: isM3,
+                                            primaryColor: colors.primary,
+                                            containerColor: colors.secondaryContainer
                                         )
+                                        .aspectRatio(1, contentMode: .fit)
                                         
                                         VStack(alignment: .leading, spacing: 2) {
                                             Text(pl.name)
@@ -215,6 +202,143 @@ public struct PlaylistsView: View {
     }
 }
 
+// MARK: - Playlist Cover Generator (2x2 Collage of first 4 song artworks)
+public final class PlaylistCoverGenerator: @unchecked Sendable {
+    public static let shared = PlaylistCoverGenerator()
+    
+    private init() {}
+    
+    public func collageImage(
+        for playlist: Playlist,
+        library: MusicLibraryManager = .shared,
+        size: CGSize = CGSize(width: 500, height: 500)
+    ) -> UIImage? {
+        // Collect up to 4 song artworks from the playlist
+        var images: [UIImage] = []
+        for songId in playlist.songIds {
+            if let song = library.allSongs.first(where: { $0.id == songId }),
+               let img = ArtworkCache.shared.image(for: song.id, data: song.artworkData) {
+                images.append(img)
+                if images.count == 4 { break }
+            }
+        }
+        
+        guard !images.isEmpty else { return nil }
+        
+        // Single cover if only 1 song with artwork
+        if images.count == 1 {
+            return images[0]
+        }
+        
+        // Check cache with signature of the first 4 song IDs
+        let songKeyPart = playlist.songIds.prefix(4).map(String.init).joined(separator: "_")
+        let cacheKey = "playlist_collage_\(playlist.id)_\(songKeyPart)"
+        if let cached = ArtworkCache.shared.get(key: cacheKey) {
+            return cached
+        }
+        
+        let renderer = UIGraphicsImageRenderer(size: size)
+        let composite = renderer.image { context in
+            let halfW = size.width / 2.0
+            let halfH = size.height / 2.0
+            
+            let rects = [
+                CGRect(x: 0, y: 0, width: halfW, height: halfH),
+                CGRect(x: halfW, y: 0, width: halfW, height: halfH),
+                CGRect(x: 0, y: halfH, width: halfW, height: halfH),
+                CGRect(x: halfW, y: halfH, width: halfW, height: halfH)
+            ]
+            
+            for (index, rect) in rects.enumerated() {
+                let img: UIImage
+                if index < images.count {
+                    img = images[index]
+                } else {
+                    img = images[index % images.count]
+                }
+                
+                // Draw aspect fill in the quadrant rect
+                let imgSize = img.size
+                let aspect = imgSize.width / max(imgSize.height, 1)
+                let rectAspect = rect.width / rect.height
+                
+                var drawRect = rect
+                if aspect > rectAspect {
+                    let newWidth = rect.height * aspect
+                    drawRect = CGRect(x: rect.minX - (newWidth - rect.width) / 2.0, y: rect.minY, width: newWidth, height: rect.height)
+                } else {
+                    let newHeight = rect.width / aspect
+                    drawRect = CGRect(x: rect.minX, y: rect.minY - (newHeight - rect.height) / 2.0, width: rect.width, height: newHeight)
+                }
+                
+                context.cgContext.saveGState()
+                context.cgContext.clip(to: rect)
+                img.draw(in: drawRect)
+                context.cgContext.restoreGState()
+            }
+        }
+        
+        ArtworkCache.shared.set(image: composite, for: cacheKey)
+        return composite
+    }
+}
+
+// MARK: - Playlist Cover View (Displays 2x2 Collage or Fallback Placeholder)
+public struct PlaylistCoverView: View {
+    let playlist: Playlist
+    var cornerRadius: CGFloat = 16
+    var isM3: Bool = true
+    var primaryColor: Color? = nil
+    var containerColor: Color? = nil
+    
+    @ObservedObject private var library: MusicLibraryManager = .shared
+    
+    public init(
+        playlist: Playlist,
+        cornerRadius: CGFloat = 16,
+        isM3: Bool = true,
+        primaryColor: Color? = nil,
+        containerColor: Color? = nil
+    ) {
+        self.playlist = playlist
+        self.cornerRadius = cornerRadius
+        self.isM3 = isM3
+        self.primaryColor = primaryColor
+        self.containerColor = containerColor
+    }
+    
+    public var body: some View {
+        if let composite = PlaylistCoverGenerator.shared.collageImage(for: playlist, library: library) {
+            Image(uiImage: composite)
+                .resizable()
+                .aspectRatio(1, contentMode: .fill)
+                .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+        } else {
+            // Elegant Fallback Placeholder
+            ZStack {
+                if isM3 {
+                    RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                        .fill(containerColor ?? Color.black.opacity(0.12))
+                } else {
+                    RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                        .fill(
+                            LinearGradient(
+                                colors: [Color(hex: 0x554492), Color(hex: 0x8C74D9)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                }
+                
+                Image(systemName: "music.note.list")
+                    .font(.system(size: 32, weight: .semibold))
+                    .foregroundColor(isM3 ? (primaryColor ?? Color(hex: 0x8C74D9)) : .white)
+            }
+            .aspectRatio(1, contentMode: .fit)
+        }
+    }
+}
+
 // MARK: - Playlist Detail View
 @MainActor
 public struct PlaylistDetailView: View {
@@ -227,6 +351,7 @@ public struct PlaylistDetailView: View {
     @State private var showAddSongsSheet: Bool = false
     @State private var songToDelete: Song? = nil
     @State private var showDeleteConfirmation: Bool = false
+    @State private var hasAutoOpenedPicker: Bool = false
     
     public init(playlist: Playlist, onUpdate: @escaping () -> Void = {}) {
         self._playlist = State(initialValue: playlist)
@@ -240,11 +365,14 @@ public struct PlaylistDetailView: View {
             VStack(spacing: 20) {
                 // Header Cover & Title
                 VStack(spacing: 12) {
-                    RoundedRectangle(cornerRadius: 24, style: .continuous)
-                        .fill(LinearGradient(colors: [Color(hex: 0x554492), Color(hex: 0x8C74D9)], startPoint: .topLeading, endPoint: .bottomTrailing))
-                        .frame(width: 150, height: 150)
-                        .overlay(Image(systemName: "music.note.list").font(.system(size: 52)).foregroundColor(.white))
-                        .shadow(color: Color(hex: 0x554492).opacity(0.35), radius: 16, x: 0, y: 8)
+                    PlaylistCoverView(
+                        playlist: playlist,
+                        cornerRadius: 24,
+                        isM3: true,
+                        primaryColor: Color(hex: 0x8C74D9)
+                    )
+                    .frame(width: 160, height: 160)
+                    .shadow(color: Color.black.opacity(0.35), radius: 16, x: 0, y: 8)
                     
                     Text(playlist.name)
                         .font(.custom("Quicksand-Bold", size: 24))
@@ -380,6 +508,12 @@ public struct PlaylistDetailView: View {
             PlaylistSongPickerView(playlist: playlist, onUpdate: {
                 refreshPlaylist()
             })
+        }
+        .onAppear {
+            if playlist.songIds.isEmpty && !hasAutoOpenedPicker {
+                hasAutoOpenedPicker = true
+                showAddSongsSheet = true
+            }
         }
         .alert("Delete from device".localized, isPresented: $showDeleteConfirmation, presenting: songToDelete) { song in
             Button("Delete".localized, role: .destructive) {
@@ -619,12 +753,13 @@ public struct AddToPlaylistSheet: View {
                                 }
                             } label: {
                                 HStack(spacing: 12) {
-                                    Image(systemName: "music.note.list")
-                                        .font(.system(size: 20))
-                                        .foregroundColor(Color(hex: 0x8C74D9))
-                                        .frame(width: 36, height: 36)
-                                        .background(Color(hex: 0x8C74D9).opacity(0.15))
-                                        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                                    PlaylistCoverView(
+                                        playlist: pl,
+                                        cornerRadius: 10,
+                                        isM3: true,
+                                        primaryColor: Color(hex: 0x8C74D9)
+                                    )
+                                    .frame(width: 38, height: 38)
                                     
                                     VStack(alignment: .leading, spacing: 2) {
                                         Text(pl.name)

@@ -515,18 +515,20 @@ public struct ResumeScreenView: View {
                             selectedPlaylist = pl
                         } label: {
                             ZStack(alignment: .bottomLeading) {
-                                colors.surfaceContainerHigh
-                                
-                                Image(systemName: "music.note.list")
-                                    .font(.system(size: 40))
-                                    .foregroundColor(colors.primary.opacity(0.35))
-                                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                PlaylistCoverView(
+                                    playlist: pl,
+                                    cornerRadius: 20,
+                                    isM3: true,
+                                    primaryColor: colors.primary,
+                                    containerColor: colors.surfaceContainerHigh
+                                )
+                                .frame(width: 150, height: 190)
                                 
                                 LinearGradient(
                                     colors: [
                                         Color.clear,
-                                        Color.black.opacity(0.20),
-                                        Color.black.opacity(0.75),
+                                        Color.black.opacity(0.15),
+                                        Color.black.opacity(0.70),
                                         Color.black.opacity(0.92)
                                     ],
                                     startPoint: .top,

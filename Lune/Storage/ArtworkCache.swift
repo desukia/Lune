@@ -45,6 +45,14 @@ public final class ArtworkCache: @unchecked Sendable {
         return nil
     }
     
+    public func get(key: String) -> UIImage? {
+        cache.object(forKey: NSString(string: key))
+    }
+    
+    public func set(image: UIImage, for key: String) {
+        cache.setObject(image, forKey: NSString(string: key))
+    }
+    
     public func remove(for songId: Int64) {
         cache.removeObject(forKey: NSString(string: "song_\(songId)"))
     }
